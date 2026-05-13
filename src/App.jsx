@@ -20,7 +20,7 @@ const getColor = (num) => {
     return redNumbers.includes(num) ? "#c62828" : "#1a1a1a";
 };
 
-// ✅ CORRECT BACKEND LIVE URL
+// ✅ LIVE BACKEND URL
 const API_BASE_URL = "https://roulette-app-zov4.onrender.com";
 
 // Navigation Bar Component
@@ -84,58 +84,186 @@ function RouletteGame() {
     const [ballXRotation, setBallXRotation] = useState(0);
     const [ballYRotation, setBallYRotation] = useState(0);
     const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadingText, setLoadingText] = useState("Starting SRJ Roulette...");
+    const [backendStatus, setBackendStatus] = useState("checking");
     const navigate = useNavigate();
 
     const angle = 360 / numbers.length;
     const POINTER_ANGLE = -90;
 
+    // Check backend status first
+    const checkBackend = async () => {
+        try {
+            console.log("Checking backend at:", API_BASE_URL);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const res = await fetch(`${API_BASE_URL}/api/health`, {
+                signal: controller.signal
+            }).catch(() => null);
+            
+            clearTimeout(timeoutId);
+            
+            if (res && res.ok) {
+                console.log("Backend is online");
+                setBackendStatus("online");
+                return true;
+            } else {
+                console.log("Backend health check failed");
+                setBackendStatus("offline");
+                return false;
+            }
+        } catch (error) {
+            console.log("Backend check error:", error.message);
+            setBackendStatus("offline");
+            return false;
+        }
+    };
+
     const fetchHistory = useCallback(async () => {
         try {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) return false;
+            
+            console.log("Fetching history...");
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            
             const res = await fetch(`${API_BASE_URL}/api/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: controller.signal
             });
-            const data = await res.json();
-            setHistory(Array.isArray(data) ? data : []);
-        } catch {
-            setHistory([]);
+            
+            clearTimeout(timeoutId);
+            
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(Array.isArray(data) ? data : []);
+                console.log("History fetched:", data.length);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.log("History fetch error:", error.message);
+            return false;
         }
     }, []);
 
     const fetchBalance = useCallback(async () => {
         try {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) return false;
+            
+            console.log("Fetching balance...");
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            
             const res = await fetch(`${API_BASE_URL}/api/balance`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: controller.signal
             });
-            const data = await res.json();
-            if (data.balance !== undefined) {
-                setBalance(data.balance);
-                // Update user object in localStorage
-                const updatedUser = { ...user, balance: data.balance };
-                localStorage.setItem("user", JSON.stringify(updatedUser));
-                setUser(updatedUser);
+            
+            clearTimeout(timeoutId);
+            
+            if (res.ok) {
+                const data = await res.json();
+                if (data.balance !== undefined) {
+                    setBalance(data.balance);
+                    console.log("Balance fetched:", data.balance);
+                    return true;
+                }
             }
+            return false;
         } catch (error) {
-            console.log("Balance fetch error:", error);
+            console.log("Balance fetch error:", error.message);
+            return false;
         }
-    }, [user]);
+    }, []);
+
+    // Progressive loading messages
+    useEffect(() => {
+        const messages = [
+            "Starting SRJ Roulette...",
+            "Waking up server (may take 30-60 seconds)...",
+            "🎰 Connecting to casino...",
+            "Loading game data...",
+            "Almost there..."
+        ];
+        
+        let index = 0;
+        const interval = setInterval(() => {
+            if (index < messages.length - 1) {
+                index++;
+                setLoadingText(messages[index]);
+            }
+        }, 8000);
+        
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        const savedUser = localStorage.getItem("user");
-        if (token && savedUser) {
+        let isMounted = true;
+        
+        const initAuth = async () => {
+            setIsLoading(true);
+            
+            // First check backend
+            await checkBackend();
+            
+            const token = localStorage.getItem("token");
+            const savedUser = localStorage.getItem("user");
+            
+            if (!token || !savedUser) {
+                navigate('/auth');
+                setIsLoading(false);
+                return;
+            }
+            
             const userData = JSON.parse(savedUser);
-            setUser(userData);
-            setBalance(userData.balance);
-            fetchHistory();
-            fetchBalance();
-        } else {
-            navigate('/auth');
-        }
-    }, [navigate, fetchHistory, fetchBalance]); // ✅ Added missing dependencies
+            if (isMounted) {
+                setUser(userData);
+                setBalance(userData.balance);
+            }
+            
+            // Try to fetch with retries
+            let historySuccess = false;
+            let balanceSuccess = false;
+            let attempts = 0;
+            const maxAttempts = 2;
+            
+            while (attempts < maxAttempts && (!historySuccess || !balanceSuccess)) {
+                attempts++;
+                setLoadingText(`Connecting to server (attempt ${attempts}/${maxAttempts})...`);
+                
+                if (!historySuccess) {
+                    historySuccess = await fetchHistory();
+                }
+                if (!balanceSuccess) {
+                    balanceSuccess = await fetchBalance();
+                }
+                
+                if (!historySuccess || !balanceSuccess) {
+                    if (attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                    }
+                }
+            }
+            
+            if (isMounted) {
+                if (!historySuccess && !balanceSuccess) {
+                    setLoadingText("Using cached data - Server is waking up");
+                }
+                setIsLoading(false);
+            }
+        };
+        
+        initAuth();
+        
+        return () => {
+            isMounted = false;
+        };
+    }, [navigate, fetchHistory, fetchBalance]);
 
     const clearHistory = async () => {
         const confirmDelete = window.confirm("Delete all history?");
@@ -158,9 +286,7 @@ function RouletteGame() {
         if (amount && !isNaN(amount) && Number(amount) > 0) {
             try {
                 const token = localStorage.getItem("token");
-                console.log("Adding money with token:", token);
-                console.log("API URL:", `${API_BASE_URL}/api/add-balance`);
-                
+                console.log("Adding money:", amount);
                 const res = await fetch(`${API_BASE_URL}/api/add-balance`, {
                     method: "POST",
                     headers: {
@@ -170,16 +296,16 @@ function RouletteGame() {
                     body: JSON.stringify({ amount: Number(amount) })
                 });
                 
-                console.log("Response status:", res.status);
                 const data = await res.json();
-                console.log("Response data:", data);
+                console.log("Add money response:", data);
                 
                 if (data.balance !== undefined) {
                     setBalance(data.balance);
-                    // Update user object in localStorage
-                    const updatedUser = { ...user, balance: data.balance };
-                    localStorage.setItem("user", JSON.stringify(updatedUser));
-                    setUser(updatedUser);
+                    if (user) {
+                        const updatedUser = { ...user, balance: data.balance };
+                        localStorage.setItem("user", JSON.stringify(updatedUser));
+                        setUser(updatedUser);
+                    }
                     alert(`✅ ₹${amount} added! New balance: ₹${data.balance}`);
                 } else if (data.error) {
                     alert(`❌ Error: ${data.error}`);
@@ -188,13 +314,23 @@ function RouletteGame() {
                 }
             } catch (error) {
                 console.error("Add money error:", error);
-                alert("Failed to add money. Check console for details.");
+                alert("Server error. Please try again.");
             }
         }
     };
 
-    const spinWheel = () => {
-        if (spinning) return;
+    const spinWheel = useCallback(() => {
+        console.log("Spin button clicked - Checking conditions...");
+        console.log("Spinning state:", spinning);
+        console.log("Game active:", gameActive);
+        console.log("Selected number:", selectedNumber);
+        console.log("Bet amount:", bet);
+        console.log("Current balance:", balance);
+        
+        if (spinning) {
+            console.log("Already spinning");
+            return;
+        }
         if (!gameActive) {
             alert("Game is paused by admin!");
             return;
@@ -212,6 +348,7 @@ function RouletteGame() {
             return;
         }
 
+        console.log("Starting spin...");
         setSpinning(true);
         setBallXRotation(0);
         setBallYRotation(0);
@@ -230,6 +367,9 @@ function RouletteGame() {
             setBallYRotation(Math.sin(ballYAngle * Math.PI / 180) * 20);
         }, 60);
 
+        console.log("Sending spin request to:", `${API_BASE_URL}/api/spin`);
+        console.log("Request body:", { bet, selectedNumber });
+        
         fetch(`${API_BASE_URL}/api/spin`, {
             method: "POST",
             headers: {
@@ -238,8 +378,13 @@ function RouletteGame() {
             },
             body: JSON.stringify({ bet, selectedNumber })
         })
-            .then(res => res.json())
+            .then(res => {
+                console.log("Spin response status:", res.status);
+                return res.json();
+            })
             .then(data => {
+                console.log("Spin response data:", data);
+                
                 if (data.error) {
                     alert(data.error);
                     clearInterval(ballXInterval);
@@ -261,10 +406,11 @@ function RouletteGame() {
                     clearInterval(ballYInterval);
                     setWinningNumber(winningNum);
                     setBalance(data.balance);
-                    // Update user object in localStorage
-                    const updatedUser = { ...user, balance: data.balance };
-                    localStorage.setItem("user", JSON.stringify(updatedUser));
-                    setUser(updatedUser);
+                    if (user) {
+                        const updatedUser = { ...user, balance: data.balance };
+                        localStorage.setItem("user", JSON.stringify(updatedUser));
+                        setUser(updatedUser);
+                    }
                     
                     if (data.result === "win") {
                         setMessage(`🎉 You WIN! +${data.winAmount}`);
@@ -280,12 +426,12 @@ function RouletteGame() {
             })
             .catch((error) => {
                 console.error("Spin error:", error);
-                alert("Server error: " + error.message);
+                alert("Server error: " + error.message + "\nPlease check if backend is running.");
                 clearInterval(ballXInterval);
                 clearInterval(ballYInterval);
                 setSpinning(false);
             });
-    };
+    }, [spinning, gameActive, selectedNumber, bet, balance, user, fetchHistory, angle, POINTER_ANGLE]);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -294,13 +440,57 @@ function RouletteGame() {
         navigate('/auth');
     };
 
+    // Loading Screen
+    if (isLoading) {
+        return (
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '100vh', 
+                background: '#1a1a2e', 
+                color: 'white' 
+            }}>
+                <div style={{ fontSize: '64px', marginBottom: '20px', animation: 'spin 1s linear infinite' }}>
+                    🎰
+                </div>
+                <div style={{ fontSize: '20px', marginBottom: '10px', fontWeight: 'bold' }}>
+                    {loadingText}
+                </div>
+                <div style={{ fontSize: '14px', color: '#d4af37', textAlign: 'center', maxWidth: '350px', marginTop: '10px' }}>
+                    ⚡ Free server is waking up<br/>
+                    This may take 30-60 seconds on first load
+                </div>
+                <div style={{ fontSize: '12px', color: '#888', marginTop: '20px' }}>
+                    Please wait...
+                </div>
+                <style>
+                    {`
+                        @keyframes spin {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `}
+                </style>
+            </div>
+        );
+    }
+
     if (!user) {
-        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#1a1a2e', color: 'white' }}>Loading...</div>;
+        return null;
     }
 
     return (
         <div className="container">
             <NavigationBar user={user} onLogout={handleLogout} onAdminClick={() => {}} />
+
+            {/* Show backend status indicator */}
+            {backendStatus === "offline" && (
+                <div style={{ background: '#f44336', color: 'white', padding: '5px', textAlign: 'center', fontSize: '12px' }}>
+                    ⚠️ Server is waking up. Please wait 30-60 seconds for first spin.
+                </div>
+            )}
 
             <div className="casino-top-banner">
                 <h1>🎰 ROULETTE CASINO 🎰</h1>
