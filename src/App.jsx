@@ -1,718 +1,722 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Auth from "./Auth";
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import "./App.css";
 
-// 🎯 ROULETTE NUMBERS
-const numbers = [
-    0, 32, 15, 19, 4, 21, 2, 25, 17,
-    34, 6, 27, 13, 36, 11, 30, 8, 23,
-    10, 5, 24, 16, 33, 1, 20, 14,
-    31, 9, 22, 18, 29, 7, 28, 12,
-    35, 3
-];
+// ─── ROULETTE CONFIG ────────────────────────────────────────────────────────
+const NUMBERS = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3];
+const RED_NUMS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
 
-const getColor = (num) => {
-    if (num === 0) return "#2e7d32";
-    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-    return redNumbers.includes(num) ? "#c62828" : "#1a1a1a";
+const getSegColor = (n) => {
+  if (n === 0) return { fill: '#0d2e1a', stroke: '#1a6e3a', text: '#4dcc80' };
+  if (RED_NUMS.includes(n)) return { fill: '#2a0a12', stroke: '#7a1830', text: '#d4607a' };
+  return { fill: '#0a0a10', stroke: '#2a2a3a', text: '#9090b8' };
 };
 
-// ✅ LIVE BACKEND URL
-const API_BASE_URL = "https://roulette-app-zov4.onrender.com";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://roulette-app-zov4.onrender.com";
 
-// Navigation Bar Component
+// ─── INLINE STYLES (COMPACT HEADER VERSION) ─────────────────────────────────
+const S = {
+  // Layout
+  app: { minHeight: '100vh', background: '#07090f', color: '#f0e6cc', fontFamily: "'Montserrat', sans-serif", position: 'relative', overflowX: 'hidden' },
+  ambientBg: { position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse 90% 70% at 50% 0%, #0d1f17 0%, #080c09 55%, #07090f 100%)', pointerEvents: 'none' },
+  ambientSpot1: { position: 'fixed', top: '-100px', left: '10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 },
+  ambientSpot2: { position: 'fixed', bottom: '-50px', right: '5%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(22,53,38,0.3) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 },
+  inner: { position: 'relative', zIndex: 2, maxWidth: '1380px', margin: '0 auto', padding: '0 20px 48px' },
+
+  // Header - COMPACT VERSION (reduced space)
+  header: { textAlign: 'center', padding: '8px 0 0' },  // Reduced from 24px to 8px
+  ornamentRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '2px' },  // Reduced gap and margin
+  ornamentLine: { flex: 1, maxWidth: '120px', height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)' },  // Reduced width
+  ornamentDiamond: { width: '5px', height: '5px', background: '#c9a84c', transform: 'rotate(45deg)', flexShrink: 0 },  // Smaller diamond
+  casinoName: { fontFamily: "'Cinzel', serif", fontSize: 'clamp(14px,2.5vw,22px)', fontWeight: 700, letterSpacing: '0.2em', color: '#e8c97a', textTransform: 'uppercase' },  // Smaller font
+  casinoSub: { fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '10px', color: '#6a5a30', letterSpacing: '0.1em', marginTop: '2px' },  // Smaller font, reduced margin
+
+  // Nav - COMPACT
+  navbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(201,168,76,0.2)', marginTop: '6px', flexWrap: 'wrap', gap: '8px' },  // Reduced padding and margin
+  navLeft: { display: 'flex', alignItems: 'center', gap: '10px' },
+  navRight: { display: 'flex', alignItems: 'center', gap: '8px' },
+  balChip: { display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '40px', padding: '4px 12px' },  // Reduced padding
+  balLabel: { fontSize: '8px', letterSpacing: '0.12em', color: '#6a5a30', textTransform: 'uppercase' },
+  balAmount: { fontFamily: "'Cinzel', serif", fontSize: '14px', color: '#e8c97a', fontWeight: 600 },  // Smaller font
+  liveBadge: { display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '8px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4caf7d', border: '1px solid rgba(76,175,101,0.3)', borderRadius: '20px', padding: '3px 8px' },
+  liveDot: { width: '4px', height: '4px', background: '#4caf7d', borderRadius: '50%' },
+  tableInfo: { fontSize: '9px', color: '#5a4a28', letterSpacing: '0.05em' },
+
+  // Buttons - COMPACT
+  btn: { fontFamily: "'Montserrat', sans-serif", fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '5px 12px', border: '1px solid rgba(201,168,76,0.4)', background: 'transparent', color: '#c9a84c', cursor: 'pointer', borderRadius: '2px', transition: 'all 0.2s' },
+  btnAdmin: { fontFamily: "'Montserrat', sans-serif", fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '5px 12px', border: '1px solid rgba(201,168,76,0.25)', background: 'transparent', color: '#8a7a50', cursor: 'pointer', borderRadius: '2px' },
+  btnLogout: { fontFamily: "'Montserrat', sans-serif", fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '5px 10px', border: '1px solid rgba(160,37,64,0.4)', background: 'transparent', color: '#c06080', cursor: 'pointer', borderRadius: '2px' },
+
+  // Main grid
+  mainGrid: { display: 'grid', gridTemplateColumns: '1fr 460px 270px', gap: '20px', marginTop: '16px', alignItems: 'start' },  // Reduced margin
+  sectionStack: { display: 'flex', flexDirection: 'column', gap: '16px' },  // Reduced gap
+
+  // Panel
+  panel: { background: 'rgba(8,10,14,0.75)', border: '1px solid rgba(201,168,76,0.18)', borderRadius: '2px', backdropFilter: 'blur(6px)', overflow: 'hidden' },
+  panelDark: { background: 'rgba(6,12,8,0.88)', border: '1px solid rgba(201,168,76,0.28)', borderRadius: '2px', backdropFilter: 'blur(6px)', overflow: 'hidden' },
+  panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid rgba(201,168,76,0.12)', background: 'rgba(201,168,76,0.03)' },
+  panelTitle: { fontFamily: "'Cinzel', serif", fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#a08a50' },
+  panelBody: { padding: '14px' },  // Reduced padding
+
+  // Wheel (unchanged)
+  wheelWrap: { position: 'relative', width: '340px', height: '340px', margin: '0 auto' },
+  wheelGlow: { position: 'absolute', inset: '-24px', background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' },
+  pointer: { position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, width: 0, height: 0, borderLeft: '9px solid transparent', borderRight: '9px solid transparent', borderTop: '26px solid #e8c97a', filter: 'drop-shadow(0 0 8px rgba(201,168,76,0.9))' },
+  winBadge: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '12px' },  // Reduced margin
+  winLabel: { fontSize: '8px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#5a4a28', marginBottom: '6px' },
+  winNum: (n) => { const c = getSegColor(n); return { width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cinzel', serif", fontSize: '20px', fontWeight: 700, border: '2px solid rgba(201,168,76,0.6)', background: c.fill, color: c.text, boxShadow: '0 0 18px rgba(201,168,76,0.2)' }; },
+  winNumEmpty: { width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cinzel', serif", fontSize: '20px', fontWeight: 700, border: '2px solid rgba(201,168,76,0.2)', background: '#0a0a12', color: '#3a3a50' },
+
+  // Toast
+  toast: (type) => ({ padding: '8px 16px', borderRadius: '2px', fontFamily: "'Cinzel', serif", fontSize: '11px', letterSpacing: '0.06em', textAlign: 'center', marginTop: '10px', border: '1px solid', ...(type === 'win' ? { background: 'rgba(76,175,101,0.1)', borderColor: 'rgba(76,175,101,0.35)', color: '#6ddf9d' } : { background: 'rgba(160,37,64,0.1)', borderColor: 'rgba(160,37,64,0.35)', color: '#e07090' }) }),
+
+  // Chips
+  chipsRow: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '2px' },
+  chip: (color, isActive) => ({ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cinzel', serif", fontSize: '7px', fontWeight: 700, cursor: 'pointer', border: `2px ${isActive ? 'solid' : 'dashed'} rgba(255,255,255,0.22)`, transition: 'all 0.15s', flexShrink: 0, ...color, ...(isActive ? { boxShadow: '0 0 12px rgba(201,168,76,0.5)', transform: 'scale(1.08)' } : {}) }),
+
+  // Bet input
+  betInput: { width: '100%', background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '2px', padding: '8px 12px', fontFamily: "'Cinzel', serif", fontSize: '16px', color: '#e8c97a', outline: 'none', textAlign: 'center' },
+  quickBets: { display: 'flex', gap: '6px', marginTop: '8px' },
+  qbet: { flex: 1, padding: '5px 4px', fontSize: '9px', fontFamily: "'Cinzel', serif", border: '1px solid rgba(201,168,76,0.2)', background: 'transparent', color: '#8a7a50', cursor: 'pointer', borderRadius: '2px', letterSpacing: '0.05em' },
+
+  // Number grid
+  numGrid: { display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '4px', marginTop: '4px' },
+  numCell: (n, selected, justWon) => {
+    const c = getSegColor(n);
+    return { aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cinzel', serif", fontSize: '10px', fontWeight: 700, borderRadius: '2px', cursor: 'pointer', border: selected ? '1.5px solid #e8c97a' : `1px solid ${c.stroke}`, background: selected ? 'rgba(201,168,76,0.15)' : c.fill, color: c.text, transition: 'all 0.15s', transform: selected ? 'scale(1.08)' : 'scale(1)', boxShadow: selected ? '0 0 8px rgba(201,168,76,0.45)' : 'none', zIndex: selected ? 3 : 1 };
+  },
+
+  // Spin button
+  spinBtn: (spinning) => ({ width: '100%', padding: '12px', fontFamily: "'Cinzel', serif", fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase', background: 'linear-gradient(135deg, #162519 0%, #0c1810 100%)', border: `1px solid ${spinning ? '#c9a84c' : '#e8c97a'}`, color: '#e8c97a', cursor: spinning ? 'not-allowed' : 'pointer', borderRadius: '2px', marginTop: '12px', opacity: spinning ? 0.65 : 1, transition: 'all 0.2s' }),
+
+  // Stats
+  statGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' },
+  statCard: { background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.12)', borderRadius: '2px', padding: '8px 10px' },
+  statVal: { fontFamily: "'Cinzel', serif", fontSize: '16px', color: '#e8c97a' },
+  statLabel: { fontSize: '8px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5a4a28', marginTop: '2px' },
+
+  // History
+  histItem: { display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: '1px solid rgba(201,168,76,0.07)' },
+  histNum: (n) => { const c = getSegColor(n); return { width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cinzel', serif", fontSize: '9px', fontWeight: 700, flexShrink: 0, background: c.fill, color: c.text, border: `1px solid ${c.stroke}` }; },
+  histDetails: { flex: 1 },
+  histBet: { fontSize: '9px', color: '#5a4a28' },
+  histTime: { fontSize: '8px', color: '#3a3020' },
+  histWin: (pos) => ({ fontFamily: "'Cinzel', serif", fontSize: '10px', color: pos ? '#6ddf9d' : '#e07090', flexShrink: 0 }),
+
+  // Deco divider
+  decoDivider: { display: 'flex', alignItems: 'center', gap: '8px', margin: '10px 0' },
+  decoLine: { flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.2), transparent)' },
+  decoCenter: { fontSize: '7px', letterSpacing: '0.15em', color: '#3a3020' },
+
+  // Sec label
+  secLabel: { fontFamily: "'Cinzel', serif", fontSize: '8px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#5a4a28', marginBottom: '6px' },
+};
+
+// Rest of the code remains EXACTLY THE SAME from here...
+// (FontLoader, GlobalStyles, RouletteWheel, NavigationBar, CHIPS, RouletteGame, AdminLoginWrapper, App)
+
+// ─── GOOGLE FONTS LOADER ────────────────────────────────────────────────────
+function FontLoader() {
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Cormorant+Garamond:ital,wght@1,300&family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }, []);
+  return null;
+}
+
+// ─── KEYFRAME INJECTION ──────────────────────────────────────────────────────
+function GlobalStyles() {
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: #07090f !important; }
+      @keyframes pulseDot { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(76,175,101,0.4)}50%{opacity:.7;box-shadow:0 0 0 5px transparent} }
+      @keyframes wheelSpin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+      @keyframes toastIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+      @keyframes winPop { 0%,100%{transform:scale(1)}50%{transform:scale(1.22);box-shadow:0 0 18px rgba(201,168,76,0.7)} }
+      @keyframes glowPulse { 0%,100%{box-shadow:0 0 6px rgba(201,168,76,0.25)}50%{box-shadow:0 0 22px rgba(201,168,76,0.55)} }
+      .live-dot-anim { animation: pulseDot 1.5s infinite; }
+      .spin-glow { animation: glowPulse 1s infinite; }
+      .num-win-pop { animation: winPop 0.6s ease; }
+      .toast-anim { animation: toastIn 0.3s ease; }
+      @media(max-width:1100px){ .main-casino-grid{ grid-template-columns: 1fr 420px !important; } .history-col{ display:none; } }
+      @media(max-width:760px){ .main-casino-grid{ grid-template-columns: 1fr !important; } }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+  return null;
+}
+
+// ─── WHEEL COMPONENT ─────────────────────────────────────────────────────────
+function RouletteWheel({ rotation, ballPos }) {
+  const cx = 170, cy = 170, outerR = 152, innerR = 48;
+  const segAngle = 360 / NUMBERS.length;
+
+  const segments = NUMBERS.map((num, i) => {
+    const sa = (i * segAngle - 90) * Math.PI / 180;
+    const ea = ((i + 1) * segAngle - 90) * Math.PI / 180;
+    const x1 = cx + outerR * Math.cos(sa), y1 = cy + outerR * Math.sin(sa);
+    const x2 = cx + outerR * Math.cos(ea), y2 = cy + outerR * Math.sin(ea);
+    const ix1 = cx + innerR * Math.cos(sa), iy1 = cy + innerR * Math.sin(sa);
+    const ix2 = cx + innerR * Math.cos(ea), iy2 = cy + innerR * Math.sin(ea);
+    const ma = ((i + 0.5) * segAngle - 90) * Math.PI / 180;
+    const tr = (outerR + innerR) / 2;
+    const tx = cx + tr * Math.cos(ma), ty = cy + tr * Math.sin(ma);
+    const ta = (i + 0.5) * segAngle;
+    const c = getSegColor(num);
+    return { num, pathD: `M${ix1},${iy1} L${x1},${y1} A${outerR},${outerR} 0 0,1 ${x2},${y2} L${ix2},${iy2} A${innerR},${innerR} 0 0,0 ${ix1},${iy1}Z`, tx, ty, ta, fill: c.fill, stroke: c.stroke, text: c.text };
+  });
+
+  return (
+    <svg viewBox="0 0 340 340" width="340" height="340"
+      style={{ borderRadius: '50%', transform: `rotate(${rotation}deg)`, transition: 'none', display: 'block' }}>
+      <circle cx={cx} cy={cy} r={outerR + 6} fill="#080c08" stroke="#c9a84c" strokeWidth="3" />
+      <circle cx={cx} cy={cy} r={outerR + 3} fill="none" stroke="#7a5c1e" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="#c9a84c" strokeWidth="1" />
+
+      {segments.map(s => (
+        <g key={s.num}>
+          <path d={s.pathD} fill={s.fill} stroke="#c9a84c" strokeWidth="0.7" />
+          <text x={s.tx} y={s.ty} textAnchor="middle" dominantBaseline="middle"
+            transform={`rotate(${s.ta}, ${s.tx}, ${s.ty})`}
+            fill={s.text} fontSize="10" fontWeight="700" fontFamily="Cinzel, serif"
+            style={{ pointerEvents: 'none' }}>{s.num}</text>
+        </g>
+      ))}
+
+      <circle cx={cx} cy={cy} r={innerR + 4} fill="#0a0e0a" stroke="#c9a84c" strokeWidth="1.5" />
+      <circle cx={cx} cy={cy} r={innerR + 1} fill="none" stroke="#7a5c1e" strokeWidth="0.7" />
+      <circle cx={cx} cy={cy} r="28" fill="#c9a84c" />
+      <circle cx={cx} cy={cy} r="22" fill="#07090f" />
+      <circle cx={cx} cy={cy} r="15" fill="#c9a84c" />
+      <circle cx={cx} cy={cy} r="9" fill="#07090f" />
+      <circle cx={cx} cy={cy} r="4" fill="#c9a84c" />
+
+      {ballPos && (
+        <>
+          <circle cx={ballPos.x} cy={ballPos.y} r="8" fill="#f5e4b5" stroke="#c9a84c" strokeWidth="1.5" />
+          <circle cx={ballPos.x - 2} cy={ballPos.y - 2} r="2.5" fill="rgba(255,255,255,0.7)" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+// ─── NAVIGATION BAR ──────────────────────────────────────────────────────────
 function NavigationBar({ user, onLogout, onAdminClick }) {
-    const location = useLocation();
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        if (onLogout) onLogout();
-        navigate('/auth');
-    };
-
-    const handleAdminClick = () => {
-        if (onAdminClick) onAdminClick();
-        navigate('/admin-login');
-    };
-
-    return (
-        <nav className="navbar">
-            <div className="nav-brand">
-                <h2>🎰 SRJ ROULETTE</h2>
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    if (onLogout) onLogout();
+    navigate('/auth');
+  };
+  return (
+    <div style={S.navbar}>
+      <div style={S.navLeft}>
+        <div style={S.liveBadge}>
+          <div style={S.liveDot} className="live-dot-anim" />
+          Live Table
+        </div>
+        <span style={S.tableInfo}>Table #7 · Min ₹50 · Max ₹50,000</span>
+      </div>
+      <div style={S.navRight}>
+        {user && (
+          <>
+            <span style={{ fontSize: '10px', color: '#6a5a30', letterSpacing: '0.06em' }}>
+              👤 {user.username || user.email?.split('@')[0]}
+            </span>
+            <div style={S.balChip}>
+              <div>
+                <div style={S.balLabel}>Balance</div>
+                <div style={S.balAmount}>₹{(user.balance || 0).toLocaleString()}</div>
+              </div>
             </div>
-            <div className="nav-menu">
-                <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
-                    🏠 Home
-                </Link>
-                <button onClick={handleAdminClick} className="nav-admin-btn">
-                    👑 Admin
-                </button>
-                {user && (
-                    <>
-                        <span className="nav-username">
-                            👤 {user.username || user.email?.split('@')[0]}
-                        </span>
-                        <span className="nav-balance">
-                            💰 ₹{user.balance?.toLocaleString()}
-                        </span>
-                        <button onClick={handleLogout} className="nav-logout-btn">
-                            🚪 Logout
-                        </button>
-                    </>
-                )}
-            </div>
-        </nav>
-    );
+          </>
+        )}
+        <button style={S.btnAdmin} onClick={() => { if (onAdminClick) onAdminClick(); navigate('/admin-login'); }}>👑 Admin</button>
+        {user && <button style={S.btnLogout} onClick={handleLogout}>Logout</button>}
+      </div>
+    </div>
+  );
 }
 
-// Main Roulette Game Component
+// ─── CHIP COLORS ──────────────────────────────────────────────────────────────
+const CHIPS = [
+  { val: 25,   label: '₹25',  bg: '#0e1e3a', color: '#6090d8' },
+  { val: 50,   label: '₹50',  bg: '#0e2a18', color: '#50c870' },
+  { val: 100,  label: '₹100', bg: '#2a0e14', color: '#d05070' },
+  { val: 500,  label: '₹500', bg: '#2a1e04', color: '#d4a030' },
+  { val: 1000, label: '₹1K',  bg: '#1e0e2a', color: '#b070e0' },
+];
+
+// ─── MAIN GAME COMPONENT ─────────────────────────────────────────────────────
 function RouletteGame() {
-    const [rotation, setRotation] = useState(0);
-    const [winningNumber, setWinningNumber] = useState(null);
-    const [balance, setBalance] = useState(1000);
-    const [bet, setBet] = useState(100);
-    const [selectedNumber, setSelectedNumber] = useState(null);
-    const [message, setMessage] = useState("");
-    const [history, setHistory] = useState([]);
-    const [spinning, setSpinning] = useState(false);
-    const [gameActive] = useState(true);
-    const [ballXRotation, setBallXRotation] = useState(0);
-    const [ballYRotation, setBallYRotation] = useState(0);
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [loadingText, setLoadingText] = useState("Starting SRJ Roulette...");
-    const [backendStatus, setBackendStatus] = useState("checking");
-    const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [balance, setBalance] = useState(1000);
+  const [bet, setBet] = useState(100);
+  const [chipVal, setChipVal] = useState(100);
+  const [selectedNum, setSelectedNum] = useState(null);
+  const [spinning, setSpinning] = useState(false);
+  const [winningNumber, setWinningNumber] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingText, setLoadingText] = useState("Waking up casino server…");
+  const [rotation, setRotation] = useState(0);
+  const [ballPos, setBallPos] = useState({ x: 170, y: 18 });
+  const [spinCount, setSpinCount] = useState(0);
+  const [winCount, setWinCount] = useState(0);
+  const [netPL, setNetPL] = useState(0);
+  const [numFreq, setNumFreq] = useState({});
+  const rotRef = useRef(0);
+  const ballAnimRef = useRef(null);
+  const wheelAnimRef = useRef(null);
+  const navigate = useNavigate();
 
-    const angle = 360 / numbers.length;
-    const POINTER_ANGLE = -90;
+  const fetchBalance = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return false;
+      const res = await fetch(`${API_BASE_URL}/api/balance`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) { const d = await res.json(); if (d.balance !== undefined) { setBalance(d.balance); return true; } }
+    } catch (e) {}
+    return false;
+  }, []);
 
-    // Check backend status first
-    const checkBackend = async () => {
-        try {
-            console.log("Checking backend at:", API_BASE_URL);
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            
-            const res = await fetch(`${API_BASE_URL}/api/health`, {
-                signal: controller.signal
-            }).catch(() => null);
-            
-            clearTimeout(timeoutId);
-            
-            if (res && res.ok) {
-                console.log("Backend is online");
-                setBackendStatus("online");
-                return true;
-            } else {
-                console.log("Backend health check failed");
-                setBackendStatus("offline");
-                return false;
-            }
-        } catch (error) {
-            console.log("Backend check error:", error.message);
-            setBackendStatus("offline");
-            return false;
-        }
+  const fetchHistory = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return false;
+      const res = await fetch(`${API_BASE_URL}/api/history`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) { const d = await res.json(); setHistory(Array.isArray(d) ? d : []); return true; }
+    } catch (e) {}
+    return false;
+  }, []);
+
+  useEffect(() => {
+    const loadingMsgs = ["Waking up casino server…", "Connecting to the table…", "🎰 Loading your chips…", "Almost ready…"];
+    let idx = 0;
+    const iv = setInterval(() => { if (idx < loadingMsgs.length - 1) { idx++; setLoadingText(loadingMsgs[idx]); } }, 8000);
+    return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      setIsLoading(true);
+      const token = localStorage.getItem("token");
+      const savedUser = localStorage.getItem("user");
+      if (!token || !savedUser) { navigate('/auth'); setIsLoading(false); return; }
+      const userData = JSON.parse(savedUser);
+      setUser(userData); setBalance(userData.balance || 1000);
+      await Promise.allSettled([fetchBalance(), fetchHistory()]);
+      setIsLoading(false);
     };
+    init();
+  }, [navigate, fetchBalance, fetchHistory]);
 
-    const fetchHistory = useCallback(async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return false;
-            
-            console.log("Fetching history...");
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
-            const res = await fetch(`${API_BASE_URL}/api/history`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (res.ok) {
-                const data = await res.json();
-                setHistory(Array.isArray(data) ? data : []);
-                console.log("History fetched:", data.length);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.log("History fetch error:", error.message);
-            return false;
-        }
-    }, []);
+  const animateBall = useCallback((targetWheelRot, duration) => {
+    const cx = 170, cy = 170, r = 140;
+    const start = performance.now();
+    let angle = 0;
 
-    const fetchBalance = useCallback(async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return false;
-            
-            console.log("Fetching balance...");
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
-            const res = await fetch(`${API_BASE_URL}/api/balance`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (res.ok) {
-                const data = await res.json();
-                if (data.balance !== undefined) {
-                    setBalance(data.balance);
-                    console.log("Balance fetched:", data.balance);
-                    return true;
-                }
-            }
-            return false;
-        } catch (error) {
-            console.log("Balance fetch error:", error.message);
-            return false;
-        }
-    }, []);
-
-    // Progressive loading messages
-    useEffect(() => {
-        const messages = [
-            "Starting SRJ Roulette...",
-            "Waking up server (may take 30-60 seconds)...",
-            "🎰 Connecting to casino...",
-            "Loading game data...",
-            "Almost there..."
-        ];
-        
-        let index = 0;
-        const interval = setInterval(() => {
-            if (index < messages.length - 1) {
-                index++;
-                setLoadingText(messages[index]);
-            }
-        }, 8000);
-        
-        return () => clearInterval(interval);
-    }, []);
-
-    useEffect(() => {
-        let isMounted = true;
-        
-        const initAuth = async () => {
-            setIsLoading(true);
-            
-            // First check backend
-            await checkBackend();
-            
-            const token = localStorage.getItem("token");
-            const savedUser = localStorage.getItem("user");
-            
-            if (!token || !savedUser) {
-                navigate('/auth');
-                setIsLoading(false);
-                return;
-            }
-            
-            const userData = JSON.parse(savedUser);
-            if (isMounted) {
-                setUser(userData);
-                setBalance(userData.balance);
-            }
-            
-            // Try to fetch with retries
-            let historySuccess = false;
-            let balanceSuccess = false;
-            let attempts = 0;
-            const maxAttempts = 2;
-            
-            while (attempts < maxAttempts && (!historySuccess || !balanceSuccess)) {
-                attempts++;
-                setLoadingText(`Connecting to server (attempt ${attempts}/${maxAttempts})...`);
-                
-                if (!historySuccess) {
-                    historySuccess = await fetchHistory();
-                }
-                if (!balanceSuccess) {
-                    balanceSuccess = await fetchBalance();
-                }
-                
-                if (!historySuccess || !balanceSuccess) {
-                    if (attempts < maxAttempts) {
-                        await new Promise(resolve => setTimeout(resolve, 5000));
-                    }
-                }
-            }
-            
-            if (isMounted) {
-                if (!historySuccess && !balanceSuccess) {
-                    setLoadingText("Using cached data - Server is waking up");
-                }
-                setIsLoading(false);
-            }
-        };
-        
-        initAuth();
-        
-        return () => {
-            isMounted = false;
-        };
-    }, [navigate, fetchHistory, fetchBalance]);
-
-    const clearHistory = async () => {
-        const confirmDelete = window.confirm("Delete all history?");
-        if (!confirmDelete) return;
-        try {
-            const token = localStorage.getItem("token");
-            await fetch(`${API_BASE_URL}/api/history`, {
-                method: "DELETE",
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setHistory([]);
-            alert("History cleared successfully!");
-        } catch (err) {
-            alert("Failed to delete history");
-        }
+    const frame = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const speed = 18 * (1 - eased) + 1.5 * eased;
+      angle += speed;
+      const rad = (angle - 90) * Math.PI / 180;
+      const curR = r * (1 - t * 0.12);
+      setBallPos({ x: cx + curR * Math.cos(rad), y: cy + curR * Math.sin(rad) });
+      if (t < 1) { ballAnimRef.current = requestAnimationFrame(frame); }
     };
+    ballAnimRef.current = requestAnimationFrame(frame);
+  }, []);
 
-    const addMoney = async () => {
-        const amount = prompt("Enter amount to add:", "1000");
-        if (amount && !isNaN(amount) && Number(amount) > 0) {
-            try {
-                const token = localStorage.getItem("token");
-                console.log("Adding money:", amount);
-                const res = await fetch(`${API_BASE_URL}/api/add-balance`, {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ amount: Number(amount) })
-                });
-                
-                const data = await res.json();
-                console.log("Add money response:", data);
-                
-                if (data.balance !== undefined) {
-                    setBalance(data.balance);
-                    if (user) {
-                        const updatedUser = { ...user, balance: data.balance };
-                        localStorage.setItem("user", JSON.stringify(updatedUser));
-                        setUser(updatedUser);
-                    }
-                    alert(`✅ ₹${amount} added! New balance: ₹${data.balance}`);
-                } else if (data.error) {
-                    alert(`❌ Error: ${data.error}`);
-                } else {
-                    alert("Failed to add money. Please try again.");
-                }
-            } catch (error) {
-                console.error("Add money error:", error);
-                alert("Server error. Please try again.");
-            }
-        }
+  const animateWheel = useCallback((totalRot, duration, onDone) => {
+    const start = performance.now();
+    const startRot = rotRef.current;
+
+    const frame = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 4);
+      const cur = startRot + totalRot * eased;
+      setRotation(cur);
+      if (t < 1) { wheelAnimRef.current = requestAnimationFrame(frame); }
+      else { rotRef.current = cur % 360; if (onDone) onDone(); }
     };
+    wheelAnimRef.current = requestAnimationFrame(frame);
+  }, []);
 
-    const spinWheel = useCallback(() => {
-        console.log("Spin button clicked - Checking conditions...");
-        console.log("Spinning state:", spinning);
-        console.log("Game active:", gameActive);
-        console.log("Selected number:", selectedNumber);
-        console.log("Bet amount:", bet);
-        console.log("Current balance:", balance);
-        
-        if (spinning) {
-            console.log("Already spinning");
-            return;
-        }
-        if (!gameActive) {
-            alert("Game is paused by admin!");
-            return;
-        }
-        if (selectedNumber === null) {
-            alert("Select a number first!");
-            return;
-        }
-        if (bet <= 0) {
-            alert("Enter valid bet!");
-            return;
-        }
-        if (bet > balance) {
-            alert("Insufficient balance! Balance: ₹" + balance);
-            return;
-        }
+  const spinWheel = useCallback(() => {
+    if (spinning) return;
+    if (selectedNum === null) { setMessage({ text: 'Select a number first!', type: 'lose' }); return; }
+    if (bet <= 0) { setMessage({ text: 'Enter a valid bet amount.', type: 'lose' }); return; }
+    if (bet > balance) { setMessage({ text: 'Insufficient balance!', type: 'lose' }); return; }
 
-        console.log("Starting spin...");
-        setSpinning(true);
-        setBallXRotation(0);
-        setBallYRotation(0);
-        const token = localStorage.getItem("token");
+    setSpinning(true);
+    setMessage(null);
+    const token = localStorage.getItem("token");
 
-        let ballXAngle = 0;
-        let ballYAngle = 0;
+    fetch(`${API_BASE_URL}/api/spin`, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ bet, selectedNumber: selectedNum })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { setMessage({ text: data.error, type: 'lose' }); setSpinning(false); return; }
 
-        const ballXInterval = setInterval(() => {
-            ballXAngle = (ballXAngle + 15) % 360;
-            setBallXRotation(Math.sin(ballXAngle * Math.PI / 180) * 30);
-        }, 50);
+        const winNum = data.winningNumber;
+        const winIdx = NUMBERS.indexOf(winNum);
+        const segA = 360 / NUMBERS.length;
+        const targetSegCenter = winIdx * segA + segA / 2;
+        const finalRot = (360 * 8) + ((360 - targetSegCenter - rotRef.current % 360) % 360);
+        const DURATION = 4600;
 
-        const ballYInterval = setInterval(() => {
-            ballYAngle = (ballYAngle + 12) % 360;
-            setBallYRotation(Math.sin(ballYAngle * Math.PI / 180) * 20);
-        }, 60);
+        animateWheel(finalRot, DURATION, () => {
+          if (ballAnimRef.current) cancelAnimationFrame(ballAnimRef.current);
+          const winA = ((winIdx + 0.5) * segA - 90 - rotRef.current) * Math.PI / 180;
+          setBallPos({ x: 170 + 136 * Math.cos(winA), y: 170 + 136 * Math.sin(winA) });
 
-        console.log("Sending spin request to:", `${API_BASE_URL}/api/spin`);
-        console.log("Request body:", { bet, selectedNumber });
-        
-        fetch(`${API_BASE_URL}/api/spin`, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ bet, selectedNumber })
-        })
-            .then(res => {
-                console.log("Spin response status:", res.status);
-                return res.json();
-            })
-            .then(data => {
-                console.log("Spin response data:", data);
-                
-                if (data.error) {
-                    alert(data.error);
-                    clearInterval(ballXInterval);
-                    clearInterval(ballYInterval);
-                    setSpinning(false);
-                    return;
-                }
+          setWinningNumber(winNum);
+          setBalance(data.balance);
+          setUser(prev => { const u = { ...prev, balance: data.balance }; localStorage.setItem("user", JSON.stringify(u)); return u; });
 
-                const winningNum = data.winningNumber;
-                const winningIndex = numbers.indexOf(winningNum);
-                const targetSegmentCenter = winningIndex * angle + angle / 2;
-                let finalRotation = (POINTER_ANGLE - targetSegmentCenter + 360) % 360;
-                finalRotation = (360 * 8) + finalRotation;
+          setSpinCount(p => p + 1);
+          if (data.result === 'win') {
+            setWinCount(p => p + 1);
+            setNetPL(p => p + data.winAmount - bet);
+            setMessage({ text: `🎉 You WIN! +₹${data.winAmount.toLocaleString()}`, type: 'win' });
+          } else {
+            setNetPL(p => p - bet);
+            setMessage({ text: `Landed on ${winNum} — Try again!`, type: 'lose' });
+          }
+          setNumFreq(prev => ({ ...prev, [winNum]: (prev[winNum] || 0) + 1 }));
+          fetchHistory();
+          setSpinning(false);
+          setSelectedNum(null);
+          setTimeout(() => setMessage(null), 3500);
+        });
 
-                setRotation(finalRotation);
+        animateBall(finalRot, DURATION);
+      })
+      .catch(err => {
+        setMessage({ text: 'Server error — please try again.', type: 'lose' });
+        setSpinning(false);
+      });
+  }, [spinning, selectedNum, bet, balance, animateWheel, animateBall, fetchHistory]);
 
-                setTimeout(() => {
-                    clearInterval(ballXInterval);
-                    clearInterval(ballYInterval);
-                    setWinningNumber(winningNum);
-                    setBalance(data.balance);
-                    if (user) {
-                        const updatedUser = { ...user, balance: data.balance };
-                        localStorage.setItem("user", JSON.stringify(updatedUser));
-                        setUser(updatedUser);
-                    }
-                    
-                    if (data.result === "win") {
-                        setMessage(`🎉 You WIN! +${data.winAmount}`);
-                    } else {
-                        setMessage(`❌ You LOSE! -${bet}`);
-                    }
-                    fetchHistory();
-                    setSpinning(false);
-                    setBallXRotation(0);
-                    setBallYRotation(0);
-                    setTimeout(() => setMessage(""), 3000);
-                }, 4000);
-            })
-            .catch((error) => {
-                console.error("Spin error:", error);
-                alert("Server error: " + error.message + "\nPlease check if backend is running.");
-                clearInterval(ballXInterval);
-                clearInterval(ballYInterval);
-                setSpinning(false);
-            });
-    }, [spinning, gameActive, selectedNumber, bet, balance, user, fetchHistory, angle, POINTER_ANGLE]);
+  const addMoney = async () => {
+    const amount = prompt("Enter amount to add:", "1000");
+    if (!amount || isNaN(amount) || +amount <= 0) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/api/add-balance`, {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ amount: Number(amount) })
+      });
+      const data = await res.json();
+      if (data.balance !== undefined) {
+        setBalance(data.balance);
+        setUser(prev => { const u = { ...prev, balance: data.balance }; localStorage.setItem("user", JSON.stringify(u)); return u; });
+      }
+    } catch (e) { alert("Failed to add funds."); }
+  };
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setUser(null);
-        navigate('/auth');
-    };
+  const clearHistory = async () => {
+    if (!window.confirm("Clear all spin history?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(`${API_BASE_URL}/api/history`, { method: "DELETE", headers: { 'Authorization': `Bearer ${token}` } });
+      setHistory([]);
+    } catch (e) {}
+  };
 
-    // Loading Screen
-    if (isLoading) {
-        return (
-            <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column',
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                height: '100vh', 
-                background: '#1a1a2e', 
-                color: 'white' 
-            }}>
-                <div style={{ fontSize: '64px', marginBottom: '20px', animation: 'spin 1s linear infinite' }}>
-                    🎰
-                </div>
-                <div style={{ fontSize: '20px', marginBottom: '10px', fontWeight: 'bold' }}>
-                    {loadingText}
-                </div>
-                <div style={{ fontSize: '14px', color: '#d4af37', textAlign: 'center', maxWidth: '350px', marginTop: '10px' }}>
-                    ⚡ Free server is waking up<br/>
-                    This may take 30-60 seconds on first load
-                </div>
-                <div style={{ fontSize: '12px', color: '#888', marginTop: '20px' }}>
-                    Please wait...
-                </div>
-                <style>
-                    {`
-                        @keyframes spin {
-                            from { transform: rotate(0deg); }
-                            to { transform: rotate(360deg); }
-                        }
-                    `}
-                </style>
-            </div>
-        );
-    }
+  const hotCold = (() => {
+    const entries = Object.entries(numFreq).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+    return { hot: entries.slice(0, 5), cold: entries.slice(-5).reverse() };
+  })();
 
-    if (!user) {
-        return null;
-    }
+  const winRate = spinCount ? Math.round(winCount / spinCount * 100) : 0;
 
+  if (isLoading) {
     return (
-        <div className="container">
-            <NavigationBar user={user} onLogout={handleLogout} onAdminClick={() => {}} />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#07090f', color: '#f0e6cc' }}>
+        <FontLoader />
+        <div style={{ fontFamily: "'Cinzel', serif", fontSize: '48px', marginBottom: '20px' }}>⚑</div>
+        <div style={{ fontFamily: "'Cinzel', serif", fontSize: '28px', letterSpacing: '0.3em', color: '#e8c97a', marginBottom: '6px' }}>MONACO GRANDE</div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '16px', color: '#6a5a30', letterSpacing: '0.1em', marginBottom: '32px' }}>European Roulette · Est. MCMXXIV</div>
+        <div style={{ width: '200px', height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)', marginBottom: '28px' }} />
+        <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '12px', color: '#6a5a30', letterSpacing: '0.1em', textAlign: 'center', maxWidth: '300px' }}>{loadingText}</div>
+        <div style={{ marginTop: '12px', fontSize: '11px', color: '#3a3020' }}>Free server cold start — please wait 30–60s</div>
+      </div>
+    );
+  }
 
-            {/* Show backend status indicator */}
-            {backendStatus === "offline" && (
-                <div style={{ background: '#f44336', color: 'white', padding: '5px', textAlign: 'center', fontSize: '12px' }}>
-                    ⚠️ Server is waking up. Please wait 30-60 seconds for first spin.
+  if (!user) return null;
+
+  return (
+    <>
+      <FontLoader />
+      <GlobalStyles />
+      <div style={S.app}>
+        <div style={S.ambientBg} />
+        <div style={S.ambientSpot1} />
+        <div style={S.ambientSpot2} />
+
+        <div style={S.inner}>
+          {/* ── HEADER (COMPACT) ── */}
+          <div style={S.header}>
+            <div style={S.ornamentRow}>
+              <div style={S.ornamentLine} />
+              <div style={S.ornamentDiamond} />
+              <div style={S.ornamentLine} />
+            </div>
+            <div style={S.casinoName}>Monaco Grande Casino</div>
+            <div style={S.casinoSub}>European Roulette · Est. MCMXXIV</div>
+            <NavigationBar user={{ ...user, balance }} onLogout={() => setUser(null)} />
+          </div>
+
+          {/* ── MAIN GRID ── */}
+          <div className="main-casino-grid" style={S.mainGrid}>
+
+            {/* ── LEFT: BETTING PANEL ── */}
+            <div style={S.sectionStack}>
+              <div style={S.panel}>
+                <div style={S.panelHeader}>
+                  <span style={S.panelTitle}>Place Your Bet</span>
+                  <button style={S.btn} onClick={addMoney}>+ Add Funds</button>
                 </div>
-            )}
+                <div style={S.panelBody}>
+                  <div style={S.secLabel}>Select Chip</div>
+                  <div style={S.chipsRow}>
+                    {CHIPS.map(ch => (
+                      <div key={ch.val}
+                        style={S.chip({ background: ch.bg, color: ch.color }, chipVal === ch.val)}
+                        onClick={() => { setChipVal(ch.val); setBet(ch.val); }}>
+                        {ch.label}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={S.decoDivider}>
+                    <div style={S.decoLine} /><div style={S.decoCenter}>◆ Or Enter ◆</div><div style={S.decoLine} />
+                  </div>
+                  <input type="number" style={S.betInput} value={bet} min="25"
+                    onChange={e => setBet(Math.max(25, Math.min(+e.target.value || 25, balance)))}
+                    disabled={spinning} />
+                  <div style={S.quickBets}>
+                    {[['½', () => setBet(b => Math.max(25, Math.floor(b / 2)))],
+                      ['2×', () => setBet(b => Math.min(b * 2, balance))],
+                      ['MAX', () => setBet(balance)],
+                      ['CLEAR', () => setBet(chipVal)]].map(([lbl, fn]) => (
+                      <button key={lbl} style={S.qbet} onClick={fn} disabled={spinning}>{lbl}</button>
+                    ))}
+                  </div>
 
-            <div className="casino-top-banner">
-                <h1>🎰 ROULETTE CASINO 🎰</h1>
-                <p>SRJ GLOBAL TECHNOLOGY | European Roulette</p>
+                  <div style={S.decoDivider}>
+                    <div style={S.decoLine} /><div style={S.decoCenter}>◆ Choose Number ◆</div><div style={S.decoLine} />
+                  </div>
+                  <div style={S.secLabel}>Select Number (0–36)</div>
+                  <div style={S.numGrid}>
+                    {NUMBERS.map(n => (
+                      <div key={n}
+                        style={S.numCell(n, selectedNum === n, winningNumber === n)}
+                        onClick={() => { if (!spinning) setSelectedNum(n); }}>
+                        {n}
+                      </div>
+                    ))}
+                  </div>
+
+                  <button style={S.spinBtn(spinning)} className={spinning ? 'spin-glow' : ''}
+                    onClick={spinWheel} disabled={spinning}>
+                    {spinning ? '⟳  Spinning…' : '⚑  Spin The Wheel'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div style={S.panel}>
+                <div style={S.panelHeader}>
+                  <span style={S.panelTitle}>Session Statistics</span>
+                </div>
+                <div style={S.panelBody}>
+                  <div style={S.statGrid}>
+                    {[['Spins', spinCount, null], ['Wins', winCount, null],
+                      ['Net P&L', `${netPL >= 0 ? '+' : ''}₹${Math.abs(netPL).toLocaleString()}`, netPL >= 0 ? '#6ddf9d' : '#e07090'],
+                      ['Win Rate', `${winRate}%`, null]
+                    ].map(([label, val, color]) => (
+                      <div key={label} style={S.statCard}>
+                        <div style={{ ...S.statVal, ...(color ? { color } : {}) }}>{val}</div>
+                        <div style={S.statLabel}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div style={{ width: '100%' }}>
-                <div className="balance-bar">
-                    <span className="balance-amount">💰 BALANCE: ₹{balance.toLocaleString()}</span>
-                    <button onClick={addMoney} className="add-money-nav-btn">➕ Add Money</button>
-                    {!gameActive && <span className="game-paused-badge">⚠️ PAUSED</span>}
+            {/* ── CENTER: WHEEL ── */}
+            <div style={S.panelDark}>
+              <div style={S.panelHeader}>
+                <span style={S.panelTitle}>European Roulette — Single Zero</span>
+                <span style={S.liveBadge}>
+                  <span style={S.liveDot} className="live-dot-anim" />Active
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 16px' }}>
+                <div style={S.wheelWrap}>
+                  <div style={S.wheelGlow} />
+                  <div style={S.pointer} />
+                  <RouletteWheel rotation={rotation} ballPos={ballPos} />
                 </div>
+
+                <div style={S.winBadge}>
+                  <div style={S.winLabel}>Last Result</div>
+                  {winningNumber !== null
+                    ? <div style={S.winNum(winningNumber)}>{winningNumber}</div>
+                    : <div style={S.winNumEmpty}>—</div>}
+                </div>
+
+                {message && (
+                  <div style={S.toast(message.type)} className="toast-anim">
+                    {message.text}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="game-layout">
-                <div className="center-section">
-                    <div className="bet-section">
-                        <input
-                            type="number"
-                            placeholder="💰 Bet Amount"
-                            value={bet}
-                            onChange={(e) => setBet(Math.max(0, Number(e.target.value)))}
-                            className="bet-input"
-                            disabled={!gameActive || spinning}
-                            min="1"
-                        />
-                        <button className="spin-btn" onClick={spinWheel} disabled={spinning || !gameActive}>
-                            {spinning ? "🌀 SPINNING..." : "🎯 SPIN NOW"}
-                        </button>
-                    </div>
-
-                    <div className="wheel-container">
-                        <div className="pointer-top">
-                            <div className="pointer-diamond"></div>
+            {/* ── RIGHT: HISTORY ── */}
+            <div className="history-col" style={S.sectionStack}>
+              <div style={S.panel}>
+                <div style={S.panelHeader}>
+                  <span style={S.panelTitle}>Spin History</span>
+                  <button style={{ ...S.btn, borderColor: 'rgba(160,37,64,0.3)', color: '#c06080', fontSize: '8px', padding: '4px 8px' }} onClick={clearHistory}>Clear</button>
+                </div>
+                <div style={{ ...S.panelBody, padding: '8px 12px' }}>
+                  <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                    {history.length === 0
+                      ? <div style={{ textAlign: 'center', padding: '20px 0', color: '#3a3020', fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '12px' }}>
+                          No results yet — spin the wheel!
                         </div>
-                        <div className="wheel-wrapper" style={{ transform: `rotate(${rotation}deg)` }}>
-                            <svg width="320" height="320" viewBox="0 0 320 320">
-                                <circle cx="160" cy="160" r="148" fill="none" stroke="#d4af37" strokeWidth="8" opacity="0.5" />
-                                <circle cx="160" cy="160" r="144" fill="none" stroke="#ffd700" strokeWidth="3" strokeDasharray="4,4" />
-                                <circle cx="160" cy="160" r="140" fill="none" stroke="#8b6914" strokeWidth="2" />
-                                <circle cx="160" cy="160" r="135" fill="none" stroke="#1a1a1a" strokeWidth="6" />
-                                <circle cx="160" cy="160" r="132" fill="none" stroke="#d4af37" strokeWidth="1.5" opacity="0.8" />
-                                {numbers.map((num, i) => {
-                                    const startAngle = i * angle;
-                                    const endAngle = (i + 1) * angle;
-                                    const startRad = (startAngle * Math.PI) / 180;
-                                    const endRad = (endAngle * Math.PI) / 180;
-                                    const center = 160;
-                                    const radius = 125;
-                                    const x1 = center + radius * Math.cos(startRad);
-                                    const y1 = center + radius * Math.sin(startRad);
-                                    const x2 = center + radius * Math.cos(endRad);
-                                    const y2 = center + radius * Math.sin(endRad);
-                                    const largeArc = endAngle - startAngle <= 180 ? 0 : 1;
-                                    const pathData = [`M ${center} ${center}`, `L ${x1} ${y1}`, `A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`, 'Z'].join(' ');
-                                    const midAngle = startAngle + angle / 2;
-                                    const midRad = (midAngle * Math.PI) / 180;
-                                    const textRadius = radius * 0.72;
-                                    const textX = center + textRadius * Math.cos(midRad);
-                                    const textY = center + textRadius * Math.sin(midRad);
-
-                                    return (
-                                        <g key={num}>
-                                            <path d={pathData} fill={getColor(num)} stroke="#d4af37" strokeWidth="1.5" />
-                                            <text x={textX} y={textY} fill="white" fontSize="12" fontWeight="bold" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${midAngle + 90}, ${textX}, ${textY})`}>
-                                                {num}
-                                            </text>
-                                        </g>
-                                    );
-                                })}
-                                <circle cx="160" cy="160" r="100" fill="none" stroke="#d4af37" strokeWidth="2" strokeDasharray="5,5" opacity="0.7" />
-                                <circle cx="160" cy="160" r="65" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeDasharray="3,6" opacity="0.5" />
-                                <circle cx="160" cy="160" r="35" fill="#d4af37" stroke="#8b6914" strokeWidth="3" />
-                                <circle cx="160" cy="160" r="25" fill="#1a1a1a" />
-                                <circle cx="160" cy="160" r="15" fill="#d4af37" />
-                                <circle cx="160" cy="160" r="6" fill="#fff" />
-                                <circle cx="160" cy="160" r="3" fill="#d4af37" />
-                                <circle cx="160" cy="160" r="142" fill="none" stroke="rgba(255,215,0,0.15)" strokeWidth="14" />
-                                <g transform={`translate(${ballXRotation}, ${ballYRotation})`}>
-                                    <circle cx="160" cy="19" r="12" fill="rgba(255,215,0,0.2)" />
-                                    <circle cx="160" cy="18" r="8" fill="#ffd700" stroke="#ff8c00" strokeWidth="2.5" />
-                                    <circle cx="158" cy="16" r="3" fill="rgba(255,255,255,0.9)" />
-                                    <line x1="160" y1="8" x2="160" y2="18" stroke="#8b6914" strokeWidth="1.5" opacity="0.6" />
-                                </g>
-                            </svg>
-                        </div>
-                        <div className="pointer-shadow"></div>
-                    </div>
-
-                    <div className="result-section">
-                        {winningNumber !== null && (
-                            <div className="result-card">
-                                <h3>🎲 WINNING NUMBER</h3>
-                                <div className="winner-number" style={{ background: getColor(winningNumber) }}>{winningNumber}</div>
+                      : history.slice(0, 30).map((g, i) => {
+                          const t = new Date(g.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          const won = g.result === 'win';
+                          return (
+                            <div key={i} style={S.histItem}>
+                              <div style={S.histNum(g.winningNumber)}>{g.winningNumber}</div>
+                              <div style={S.histDetails}>
+                                <div style={S.histBet}>₹{g.bet?.toLocaleString()} on #{g.selectedNumber}</div>
+                                <div style={S.histTime}>{t}</div>
+                              </div>
+                              <div style={S.histWin(won)}>
+                                {won ? `+₹${g.winAmount?.toLocaleString()}` : `-₹${g.bet?.toLocaleString()}`}
+                              </div>
                             </div>
-                        )}
-                        {message && <div className={`message ${message.includes("WIN") ? "win" : "lose"}`}>{message}</div>}
-                    </div>
-
-                    <div className="numbers-table">
-                        <h3>🎯 SELECT YOUR NUMBER</h3>
-                        <div className="table">
-                            {numbers.map((num) => (
-                                <div
-                                    key={num}
-                                    onClick={() => !spinning && gameActive && setSelectedNumber(num)}
-                                    className={`cell ${selectedNumber === num ? "selected" : ""} ${winningNumber === num ? "win" : ""}`}
-                                    style={{
-                                        background: getColor(num),
-                                        cursor: !spinning && gameActive ? 'pointer' : 'not-allowed',
-                                        opacity: !spinning && gameActive ? 1 : 0.6
-                                    }}
-                                >
-                                    {num}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                          );
+                        })
+                    }
+                  </div>
                 </div>
+              </div>
 
-                <div className="history-section-right">
-                    <div className="history-header-right">
-                        <h3>📜 WINNING HISTORY</h3>
-                        <button onClick={clearHistory} disabled={history.length === 0} className="clear-btn-right">🗑️ Clear</button>
-                    </div>
-                    <div className="history-list">
-                        {history.length > 0 ? (
-                            history.filter(game => game.result === "win").map((game, index) => (
-                                <div key={index} className="history-item-right">
-                                    <span>🎯 {game.selectedNumber}</span>
-                                    <span>→</span>
-                                    <span>🎲 {game.winningNumber}</span>
-                                    <span>💰 +{game.winAmount}</span>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="no-history-right">No wins yet. Spin the wheel!</div>
-                        )}
-                    </div>
+              {/* Hot/Cold */}
+              <div style={S.panel}>
+                <div style={S.panelHeader}>
+                  <span style={S.panelTitle}>Hot &amp; Cold Numbers</span>
                 </div>
+                <div style={{ ...S.panelBody, padding: '10px 12px' }}>
+                  <div style={S.secLabel}>🔥 Hot</div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                    {hotCold.hot.length === 0
+                      ? <span style={{ fontSize: '10px', color: '#3a3020', fontStyle: 'italic' }}>Spin to discover</span>
+                      : hotCold.hot.map(([n, f]) => {
+                          const c = getSegColor(+n);
+                          return (
+                            <div key={n} style={{ textAlign: 'center' }}>
+                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.fill, color: c.text, border: `1px solid ${c.stroke}`, fontFamily: "'Cinzel', serif", fontSize: '9px', fontWeight: 700 }}>{n}</div>
+                              <div style={{ fontSize: '8px', color: '#5a4a28', marginTop: '2px' }}>{f}×</div>
+                            </div>
+                          );
+                        })
+                    }
+                  </div>
+                  <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.15), transparent)', margin: '6px 0 10px' }} />
+                  <div style={S.secLabel}>❄️ Cold</div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {hotCold.cold.length === 0
+                      ? <span style={{ fontSize: '10px', color: '#3a3020', fontStyle: 'italic' }}>Spin to discover</span>
+                      : hotCold.cold.map(([n, f]) => {
+                          const c = getSegColor(+n);
+                          return (
+                            <div key={n} style={{ textAlign: 'center' }}>
+                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.fill, color: c.text, border: `1px solid ${c.stroke}`, fontFamily: "'Cinzel', serif", fontSize: '9px', fontWeight: 700 }}>{n}</div>
+                              <div style={{ fontSize: '8px', color: '#5a4a28', marginTop: '2px' }}>{f}×</div>
+                            </div>
+                          );
+                        })
+                    }
+                  </div>
+                </div>
+              </div>
             </div>
+
+          </div>
         </div>
-    );
+      </div>
+    </>
+  );
 }
 
-// Admin Login Wrapper Component
+// ─── ADMIN WRAPPER ────────────────────────────────────────────────────────────
 function AdminLoginWrapper({ onAdminLogin }) {
-    const navigate = useNavigate();
-
-    const handleLogin = (adminData) => {
-        if (onAdminLogin) {
-            onAdminLogin(adminData);
-        }
-        navigate('/admin');
-    };
-
-    const handleBack = () => {
-        navigate('/');
-    };
-
-    return (
-        <div>
-            <button 
-                onClick={handleBack} 
-                style={{
-                    position: 'fixed',
-                    top: '20px',
-                    left: '20px',
-                    padding: '10px 20px',
-                    background: '#d4af37',
-                    color: '#1a1a2e',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    zIndex: 1000
-                }}
-            >
-                ← Back to Game
-            </button>
-            <AdminLogin onLogin={handleLogin} />
-        </div>
-    );
+  const navigate = useNavigate();
+  return (
+    <div>
+      <button onClick={() => navigate('/')}
+        style={{ position: 'fixed', top: '20px', left: '20px', padding: '8px 16px', background: '#c9a84c', color: '#07090f', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', zIndex: 1000, fontFamily: "'Cinzel', serif", fontSize: '12px' }}>
+        ← Back to Game
+      </button>
+      <AdminLogin onLogin={(adminData) => { if (onAdminLogin) onAdminLogin(adminData); navigate('/admin'); }} />
+    </div>
+  );
 }
 
-// Main App Component with Routing
+// ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
-    const [admin, setAdmin] = useState(null);
+  const [admin, setAdmin] = useState(null);
 
-    useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        const adminData = localStorage.getItem('adminData');
-        if (token && adminData) {
-            setAdmin(JSON.parse(adminData));
-        }
-    }, []);
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    const adminData = localStorage.getItem('adminData');
+    if (token && adminData) setAdmin(JSON.parse(adminData));
+  }, []);
 
-    const handleAdminLogin = (adminData) => {
-        setAdmin(adminData);
-    };
+  const handleAdminLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
+    setAdmin(null);
+    window.location.href = '/';
+  };
 
-    const handleAdminLogout = () => {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
-        setAdmin(null);
-        window.location.href = '/';
-    };
-
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<RouletteGame />} />
-                <Route path="/auth" element={<Auth setIsLoggedIn={() => {}} setUser={() => {}} />} />
-                <Route path="/admin-login" element={<AdminLoginWrapper onAdminLogin={handleAdminLogin} />} />
-                <Route path="/admin" element={
-                    admin ? (
-                        <AdminPanel admin={admin} onLogout={handleAdminLogout} />
-                    ) : (
-                        <Navigate to="/" replace />
-                    )
-                } />
-            </Routes>
-        </Router>
-    );
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<RouletteGame />} />
+        <Route path="/auth" element={<Auth setIsLoggedIn={() => {}} setUser={() => {}} />} />
+        <Route path="/admin-login" element={<AdminLoginWrapper onAdminLogin={setAdmin} />} />
+        <Route path="/admin" element={
+          admin ? <AdminPanel admin={admin} onLogout={handleAdminLogout} /> : <Navigate to="/" replace />
+        } />
+      </Routes>
+    </Router>
+  );
 }

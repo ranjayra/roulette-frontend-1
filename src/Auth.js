@@ -1,8 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ YEH IMPORT KARO
+import { useNavigate } from "react-router-dom";
+
+// ✅ BACKEND LIVE URL - Add this at top
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://roulette-app-zov4.onrender.com";
 
 export default function Auth({ setIsLoggedIn, setUser }) {
-    const navigate = useNavigate(); // ✅ YEH ADD KARO
+    const navigate = useNavigate();
     const [isLogin, setIsLogin] = useState(true);
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -14,11 +17,15 @@ export default function Auth({ setIsLoggedIn, setUser }) {
         setLoading(true);
         setError("");
 
+        // ✅ USE LIVE URL - Fixed
         const url = isLogin ?
-            "http://localhost:5000/api/auth/login" :
-            "http://localhost:5000/api/auth/register";
+            `${API_BASE_URL}/api/auth/login` :
+            `${API_BASE_URL}/api/auth/register`;
 
         const body = isLogin ? { email, password } : { username, email, password };
+
+        console.log("Sending request to:", url); // Debug log
+        console.log("Request body:", body);
 
         try {
             const res = await fetch(url, {
@@ -28,16 +35,16 @@ export default function Auth({ setIsLoggedIn, setUser }) {
             });
 
             const data = await res.json();
-            console.log("LOGIN RESPONSE:", data);
+            console.log("AUTH RESPONSE:", data);
 
             if (res.ok && data.success) {
                 if (isLogin) {
                     // Save token and user data
                     localStorage.setItem("token", data.token);
                     localStorage.setItem("user", JSON.stringify(data.user));
-                    setUser(data.user);
-                    setIsLoggedIn(true);
-                    navigate("/"); // ✅ YEH ADD KARO - Home page pe redirect
+                    if (setUser) setUser(data.user);
+                    if (setIsLoggedIn) setIsLoggedIn(true);
+                    navigate("/");
                 } else {
                     alert("✅ Signup successful! Please login.");
                     setIsLogin(true);
@@ -94,8 +101,7 @@ export default function Auth({ setIsLoggedIn, setUser }) {
             }
         } > 🎰ROULETTE GAME < /h2> <
         p style = {
-            { color: "#ccc", fontSize: "14px" } } > { isLogin ? "Welcome Back!" : "Create New Account" } <
-        /p> <
+            { color: "#ccc", fontSize: "14px" } } > { isLogin ? "Welcome Back!" : "Create New Account" } < /p> <
         /div>
 
         <
@@ -172,8 +178,7 @@ export default function Auth({ setIsLoggedIn, setUser }) {
                         fontSize: "13px",
                         textAlign: "center"
                     }
-                } > { error } <
-                /div>
+                } > { error } < /div>
             )
         }
 

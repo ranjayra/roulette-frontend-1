@@ -1,3 +1,8 @@
+/* src/App.css - Complete Casino Theme */
+
+
+/* ========== RESET & BASE ========== */
+
 * {
     margin: 0;
     padding: 0;
@@ -5,802 +10,589 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-    color: white;
+    background: #07090f;
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    overflow-x: hidden;
     min-height: 100vh;
-    overflow: hidden;
-}
-
-.container {
-    max-width: 1400px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 5px;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 
-/* Top Banner */
+/* ========== SCROLLBAR ========== */
 
-.casino-top-banner {
-    text-align: center;
-    padding: 3px;
-    background: linear-gradient(135deg, #d4af37, #8b6914);
-    border-radius: 8px;
-    margin-bottom: 5px;
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
 
-.casino-top-banner h1 {
-    font-size: 16px;
-    color: #1a1a1a;
+::-webkit-scrollbar-track {
+    background: rgba(8, 10, 14, 0.8);
 }
 
-.casino-top-banner p {
-    font-size: 8px;
-    color: #1a1a1a;
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #c9a84c, #7a5c1e);
+    border-radius: 3px;
 }
 
-
-/* Dashboard Header */
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 12px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 8px;
-    margin-bottom: 5px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-jvbaw .game-title-header h2 {
-    font-size: 14px;
-    color: gold;
-}
-
-.user-info-right {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 3px 10px;
-    border-radius: 20px;
-    flex-wrap: wrap;
-}
-
-.user-info-right span {
-    font-size: 9px;
-    color: #ccc;
-}
-
-.user-info-right span:first-child {
-    color: gold;
-}
-
-.add-money-btn,
-.admin-btn,
-.logout-btn {
-    padding: 3px 8px;
-    border-radius: 15px;
-    border: none;
-    cursor: pointer;
-    font-size: 9px;
-    font-weight: bold;
-}
-
-.add-money-btn {
-    background: #27ae60;
-    color: white;
-}
-
-.admin-btn {
-    background: #3498db;
-    color: white;
-}
-
-.logout-btn {
-    background: #e74c3c;
-    color: white;
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #e8c97a, #c9a84c);
 }
 
 
-/*Navigation Bar*/
+/* ========== ANIMATIONS ========== */
 
-
-/* Navigation Bar Styles */
-
-.navbar {
-    background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
-    padding: 0 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    border-bottom: 2px solid #d4af37;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.nav-brand h2 {
-    color: #d4af37;
-    margin: 0;
-    padding: 15px 0;
-    font-size: 1.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.nav-link {
-    color: white;
-    text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.nav-link:hover {
-    background: rgba(212, 175, 55, 0.2);
-    color: #d4af37;
-}
-
-.nav-link.active {
-    background: #d4af37;
-    color: #1a1a2e;
-}
-
-.nav-admin-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.nav-admin-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.nav-username {
-    color: #4caf50;
-    font-weight: bold;
-    padding: 5px 10px;
-    background: rgba(76, 175, 80, 0.1);
-    border-radius: 20px;
-}
-
-.nav-balance {
-    color: #d4af37;
-    font-weight: bold;
-    padding: 5px 10px;
-    background: rgba(212, 175, 55, 0.1);
-    border-radius: 20px;
-}
-
-.nav-logout-btn {
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.nav-logout-btn:hover {
-    background: #c0392b;
-    transform: translateY(-2px);
-}
-
-.add-money-nav-btn {
-    background: #4caf50;
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-left: 15px;
-    transition: all 0.3s ease;
-}
-
-.add-money-nav-btn:hover {
-    background: #45a049;
-    transform: translateY(-2px);
-}
-
-
-/* Responsive Navigation */
-
-@media (max-width: 768px) {
-    .navbar {
-        padding: 10px 20px;
-        flex-direction: column;
+@keyframes pulseDot {
+    0% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(76, 175, 101, 0.4);
     }
-    .nav-menu {
-        justify-content: center;
-        gap: 10px;
+    50% {
+        opacity: 0.7;
+        box-shadow: 0 0 0 5px transparent;
     }
-    .nav-brand h2 {
-        font-size: 1.2rem;
-        padding: 10px 0;
-    }
-    .nav-link,
-    .nav-admin-btn,
-    .nav-logout-btn {
-        padding: 5px 12px;
-        font-size: 0.85rem;
-    }
-    .nav-username,
-    .nav-balance {
-        font-size: 0.85rem;
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 transparent;
     }
 }
 
-@media (max-width: 480px) {
-    .nav-menu {
-        gap: 8px;
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
     }
-    .nav-link,
-    .nav-admin-btn,
-    .nav-logout-btn {
-        padding: 4px 10px;
-        font-size: 0.75rem;
-    }
-}
-
-
-/* Balance Bar */
-
-.balance-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 15px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 20px;
-    margin-bottom: 5px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.balance-amount {
-    font-size: 13px;
-    font-weight: bold;
-    color: #4CAF50;
-}
-
-.game-paused-badge {
-    font-size: 10px;
-    color: red;
-}
-
-
-/* Game Layout - Main */
-
-.game-layout {
-    display: flex;
-    gap: 10px;
-    flex: 1;
-    min-height: 0;
-}
-
-
-/* Center Section */
-
-.center-section {
-    flex: 3;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    overflow-y: auto;
-}
-
-
-/* Bet Section */
-
-.bet-section {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.bet-input {
-    padding: 4px 10px;
-    font-size: 11px;
-    border-radius: 20px;
-    border: 1.5px solid gold;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    width: 110px;
-}
-
-.spin-btn {
-    padding: 4px 14px;
-    font-size: 11px;
-    font-weight: bold;
-    border: none;
-    border-radius: 20px;
-    background: linear-gradient(135deg, #f39c12, #e67e22);
-    color: white;
-    cursor: pointer;
-}
-
-.spin-btn:disabled {
-    background: #7f8c8d;
-    cursor: not-allowed;
-}
-
-
-/* Wheel Section */
-
-.wheel-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 5px auto;
-}
-
-.wheel-wrapper {
-    transition: transform 4s cubic-bezier(0.2, 0.9, 0.1, 1.1);
-    width: 320px;
-    height: 320px;
-}
-
-.pointer-top {
-    position: absolute;
-    top: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 18px solid transparent;
-    border-right: 18px solid transparent;
-    border-top: 35px solid #d4af37;
-    z-index: 10;
-}
-
-.pointer-diamond {
-    position: absolute;
-    top: -35px;
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    width: 14px;
-    height: 14px;
-    background: #ffd700;
-    z-index: 11;
-}
-
-.pointer-shadow {
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 70px;
-    height: 10px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 50%;
-    filter: blur(4px);
-}
-
-.rolling-ball {
-    filter: drop-shadow(0 0 3px orange);
-}
-
-
-/* Result Section */
-
-.result-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.result-card {
-    background: rgba(0, 0, 0, 0.6);
-    padding: 3px 8px;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.result-card h3 {
-    font-size: 8px;
-    color: #ccc;
-}
-
-.winner-number {
-    font-size: 16px;
-    font-weight: bold;
-    padding: 2px 8px;
-    border-radius: 6px;
-}
-
-.message {
-    background: rgba(0, 0, 0, 0.6);
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.message.win {
-    color: #2ecc71;
-}
-
-.message.lose {
-    color: #e74c3c;
-}
-
-
-/* Numbers Table - Fully Responsive */
-
-.numbers-table {
-    width: 100%;
-    margin-top: 3px;
-}
-
-.numbers-table h3 {
-    font-size: 10px;
-    text-align: center;
-    margin-bottom: 4px;
-}
-
-
-/* Responsive Table Grid */
-
-.table {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-    gap: 5px;
-    max-width: 850px;
-    margin: 0 auto;
-    padding: 5px;
-}
-
-.cell {
-    aspect-ratio: 1 / 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 9px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    color: white;
-}
-
-
-/* Laptop: 6 columns */
-
-@media (max-width: 1000px) {
-    .table {
-        grid-template-columns: repeat(6, 1fr);
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-
-/* Tablet: 5 columns */
-
-@media (max-width: 768px) {
-    .table {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 3px;
-    }
-}
-
-
-/* Mobile Large: 4 columns */
-
-@media (max-width: 550px) {
-    .table {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 3px;
-    }
-}
-
-
-/* Mobile Small: 3 columns */
-
-@media (max-width: 400px) {
-    .table {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2px;
-    }
-}
-
-
-/* Very Small: 2 columns */
-
-@media (max-width: 280px) {
-    .table {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.cell {
-    aspect-ratio: 1 / 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 9px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    color: white;
-    min-width: 30px;
-}
-
-
-/* Responsive cell font size */
-
-@media (max-width: 550px) {
-    .cell {
-        font-size: 8px;
-    }
-}
-
-@media (max-width: 400px) {
-    .cell {
-        font-size: 7px;
-    }
-}
-
-@media (max-width: 300px) {
-    .cell {
-        font-size: 6px;
-    }
-}
-
-.cell.selected {
-    border: 2px solid gold;
-    transform: scale(1.02);
-}
-
-.cell.win {
-    animation: winFlash 0.5s ease 3;
-}
-
-@keyframes winFlash {
+@keyframes winPop {
     0%,
     100% {
-        background: gold !important;
-        color: black;
         transform: scale(1);
     }
     50% {
-        background: orange;
-        transform: scale(1.05);
+        transform: scale(1.22);
+        box-shadow: 0 0 18px rgba(201, 168, 76, 0.7);
+    }
+}
+
+@keyframes glowPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 6px rgba(201, 168, 76, 0.25);
+    }
+    50% {
+        box-shadow: 0 0 22px rgba(201, 168, 76, 0.55);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes floatGlow {
+    0%,
+    100% {
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 15px 30px rgba(201, 168, 76, 0.3));
+    }
+}
+
+@keyframes chipDrop {
+    0% {
+        transform: translateY(-20px) scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes borderPulse {
+    0%,
+    100% {
+        border-color: rgba(201, 168, 76, 0.3);
+    }
+    50% {
+        border-color: rgba(201, 168, 76, 0.8);
     }
 }
 
 
-/* History Section - Right - Fully Responsive */
+/* ========== UTILITY CLASSES ========== */
 
-.history-section-right {
-    flex: 1;
-    min-width: 160px;
-    max-width: 240px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
+.live-dot-anim {
+    animation: pulseDot 1.5s infinite;
 }
 
-@media (max-width: 768px) {
-    .history-section-right {
-        min-width: 100%;
-        max-width: 100%;
+.spin-glow {
+    animation: glowPulse 1s infinite;
+}
+
+.num-win-pop {
+    animation: winPop 0.6s ease;
+}
+
+.toast-anim {
+    animation: toastIn 0.3s ease;
+}
+
+
+/* ========== RESPONSIVE GRID ========== */
+
+@media (max-width: 1100px) {
+    .main-casino-grid {
+        grid-template-columns: 1fr 420px !important;
+    }
+    .history-col {
+        display: none !important;
     }
 }
 
-.history-header-right {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-    flex-wrap: wrap;
-    gap: 5px;
+@media (max-width: 760px) {
+    .main-casino-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .history-col {
+        display: block !important;
+    }
 }
 
-.history-header-right h3 {
+
+/* ========== CUSTOM NUMBER INPUT ========== */
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 0.5;
+    background: #c9a84c;
+}
+
+
+/* ========== BUTTON HOVER EFFECTS ========== */
+
+button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+
+/* ========== GLASS MORPHISM OVERLAY ========== */
+
+.glass-overlay {
+    background: rgba(8, 10, 14, 0.75);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(201, 168, 76, 0.18);
+}
+
+
+/* ========== WHEEL SPECIFIC STYLES ========== */
+
+.wheel-container svg {
+    transition: filter 0.3s ease;
+}
+
+.wheel-container svg:hover {
+    filter: drop-shadow(0 0 15px rgba(201, 168, 76, 0.4));
+}
+
+
+/* ========== NUMBER CELL HOVER ========== */
+
+.number-cell {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.number-cell:hover {
+    transform: scale(1.05);
+    filter: brightness(1.15);
+    z-index: 10;
+}
+
+
+/* ========== CHIP ANIMATION ON SELECT ========== */
+
+.chip-item {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chip-item:active {
+    transform: scale(0.92);
+}
+
+
+/* ========== HISTORY ITEM HOVER ========== */
+
+.history-item:hover {
+    transform: translateX(4px);
+    background: linear-gradient(90deg, rgba(201, 168, 76, 0.08), rgba(0, 0, 0, 0.4));
+}
+
+
+/* ========== STAT CARD HOVER ========== */
+
+.stat-card {
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    background: rgba(201, 168, 76, 0.08);
+    border-color: rgba(201, 168, 76, 0.2);
+}
+
+
+/* ========== LOADING SPINNER ========== */
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(201, 168, 76, 0.2);
+    border-top-color: #c9a84c;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ========== GOLD TEXT EFFECT ========== */
+
+.gold-text {
+    background: linear-gradient(135deg, #c9a84c, #e8c97a, #c9a84c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+}
+
+
+/* ========== DIVIDER STYLES ========== */
+
+.divider-gold {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.3), transparent);
+    margin: 16px 0;
+}
+
+
+/* ========== TOOLTIP STYLES ========== */
+
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #c9a84c;
     font-size: 10px;
-    color: gold;
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    border-radius: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 100;
 }
 
-@media (max-width: 480px) {
-    .history-header-right h3 {
-        font-size: 9px;
+[data-tooltip]:hover:before {
+    opacity: 1;
+}
+
+
+/* ========== FOCUS RINGS ========== */
+
+*:focus-visible {
+    outline: 2px solid #c9a84c;
+    outline-offset: 2px;
+}
+
+
+/* ========== SELECTION COLOR ========== */
+
+::selection {
+    background: rgba(201, 168, 76, 0.3);
+    color: #e8c97a;
+}
+
+
+/* ========== RESPONSIVE FONTS ========== */
+
+@media (max-width: 640px) {
+    body {
+        font-size: 13px;
     }
 }
 
-.clear-btn-right {
-    padding: 2px 8px;
-    border-radius: 12px;
-    border: none;
-    background: #e74c3c;
-    color: white;
-    font-size: 8px;
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+    .navbar,
+    button,
+    .history-col {
+        display: none;
+    }
+    body {
+        background: white;
+        color: black;
+    }
+}
+
+
+/* ========== DARK MODE FALLBACK ========== */
+
+@media (prefers-color-scheme: light) {
+    body {
+        background: #1a1a2e;
+    }
+}
+
+
+/* ========== CUSTOM CURSOR (Optional) ========== */
+
+.casino-cursor {
+    cursor: crosshair;
+}
+
+button:active {
     cursor: pointer;
 }
 
-.history-list {
-    flex: 1;
-    overflow-y: auto;
-    max-height: 280px;
+
+/* ========== SMOOTH SCROLLING ========== */
+
+html {
+    scroll-behavior: smooth;
 }
 
-@media (max-width: 768px) {
-    .history-list {
-        max-height: 180px;
-    }
-}
 
-.history-item-right {
-    background: linear-gradient(135deg, #2c3e50, #1a1a2e);
-    margin: 4px 0;
-    padding: 4px 8px;
-    border-radius: 5px;
+/* ========== LOADING SCREEN ANIMATION ========== */
+
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: #07090f;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    font-size: 8px;
-    border-left: 2px solid gold;
-    flex-wrap: wrap;
-    gap: 4px;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeOut 0.5s ease forwards;
+    animation-delay: 2s;
 }
 
-.history-item-right span:first-child {
-    color: #3498db;
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
 }
 
-.history-item-right span:nth-child(2) {
-    color: gold;
+
+/* ========== WINNING NUMBER PULSE ========== */
+
+.winner-glow {
+    animation: winnerPulse 1s ease-in-out infinite;
 }
 
-.history-item-right span:nth-child(3) {
-    color: #e74c3c;
+@keyframes winnerPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(201, 168, 76, 0);
+    }
 }
 
-.history-item-right span:last-child {
-    color: #2ecc71;
-    font-weight: bold;
+
+/* ========== CHIP STACK EFFECT ========== */
+
+.chip-stack {
+    position: relative;
 }
+
+.chip-stack::before,
+.chip-stack::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: inherit;
+    left: 0;
+    top: 0;
+}
+
+.chip-stack::before {
+    transform: translateY(-3px);
+    opacity: 0.7;
+}
+
+.chip-stack::after {
+    transform: translateY(-6px);
+    opacity: 0.4;
+}
+
+
+/* ========== STAT NUMBER INCREASE ANIMATION ========== */
+
+.stat-update {
+    animation: numberPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes numberPop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+        color: #e8c97a;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+/* ========== TABLE CELL BORDER EFFECT ========== */
+
+.table-cell-border {
+    position: relative;
+    overflow: hidden;
+}
+
+.table-cell-border::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+    transition: left 0.3s ease;
+}
+
+.table-cell-border:hover::after {
+    left: 100%;
+}
+
+
+/* ========== RESPONSIVE ADJUSTMENTS ========== */
 
 @media (max-width: 480px) {
-    .history-item-right {
+    .number-grid {
+        gap: 3px;
+    }
+    .number-cell {
+        font-size: 9px;
+    }
+    .chip-item {
+        width: 32px;
+        height: 32px;
         font-size: 7px;
-        padding: 3px 6px;
+    }
+    .balance-amount {
+        font-size: 14px;
     }
 }
 
-.no-history-right {
+
+/* ========== ACCESSIBILITY ========== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+/* ========== GLASS PANEL EFFECT ========== */
+
+.glass-panel {
+    background: rgba(8, 10, 14, 0.75);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(201, 168, 76, 0.18);
+    border-radius: 2px;
+}
+
+
+/* ========== SHIMMER BORDER ========== */
+
+.shimmer-border {
+    position: relative;
+    overflow: hidden;
+}
+
+.shimmer-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    animation: shimmerMove 3s infinite;
+}
+
+@keyframes shimmerMove {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+
+/* ========== FOOTER (if needed) ========== */
+
+.casino-footer {
+    margin-top: 48px;
+    padding: 24px;
     text-align: center;
-    padding: 15px;
-    color: #7f8c8d;
-    font-size: 9px;
+    border-top: 1px solid rgba(201, 168, 76, 0.1);
+    font-size: 10px;
+    color: #3a3020;
+    letter-spacing: 0.1em;
 }
 
-
-/* Scrollbar */
-
-.history-list::-webkit-scrollbar,
-.table::-webkit-scrollbar {
-    width: 3px;
+.casino-footer a {
+    color: #5a4a28;
+    text-decoration: none;
+    transition: color 0.2s;
 }
 
-.history-list::-webkit-scrollbar-track,
-.table::-webkit-scrollbar-track {
-    background: #111;
-}
-
-.history-list::-webkit-scrollbar-thumb,
-.table::-webkit-scrollbar-thumb {
-    background: gold;
-}
-
-
-/* Responsive Layout */
-
-@media (max-width: 900px) {
-    .history-section-right {
-        max-width: 180px;
-    }
-}
-
-@media (max-width: 768px) {
-    .game-layout {
-        flex-direction: column;
-    }
-    body {
-        overflow: auto;
-    }
-    .container {
-        height: auto;
-    }
-    .wheel-wrapper {
-        width: 280px;
-        height: 280px;
-    }
-}
-
-@media (max-width: 480px) {
-    .wheel-wrapper {
-        width: 260px;
-        height: 260px;
-    }
-    .user-info-right span {
-        display: none;
-    }
-    .dashboard-header {
-        justify-content: center;
-        text-align: center;
-    }
-    .balance-bar {
-        justify-content: center;
-    }
-    .bet-section {
-        flex-direction: column;
-        align-items: center;
-    }
-    .bet-input {
-        width: 100%;
-        max-width: 130px;
-    }
-    .pointer-top {
-        top: -15px;
-        border-left: 14px solid transparent;
-        border-right: 14px solid transparent;
-        border-top: 28px solid #d4af37;
-    }
-    .pointer-diamond {
-        top: -40px;
-        width: 10px;
-        height: 10px;
-    }
-}
-
-@media (max-width: 380px) {
-    .wheel-wrapper {
-        width: 220px;
-        height: 220px;
-    }
-    .casino-top-banner h1 {
-        font-size: 12px;
-    }
-    .casino-top-banner p {
-        font-size: 6px;
-    }
-    .game-title-header h2 {
-        font-size: 11px;
-    }
+.casino-footer a:hover {
+    color: #c9a84c;
 }

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 
+// ✅ BACKEND LIVE URL - Add this at top
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://roulette-app-zov4.onrender.com";
+
 function AdminLogin({ onLogin }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -8,36 +11,34 @@ function AdminLogin({ onLogin }) {
 
     const handleSubmit = async(e) => {
         e.preventDefault();
-
-        if (!username.trim() || !password.trim()) {
-            setError('Please enter username and password');
-            return;
-        }
-
         setLoading(true);
         setError('');
 
         try {
-            const response = await fetch('http://localhost:5000/api/admin/login', {
+            console.log("Admin login to:", `${API_BASE_URL}/api/admin/login`);
+
+            const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: username.trim(), password })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
             });
 
             const data = await response.json();
+            console.log("Admin login response:", data);
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Login failed');
-            }
-
-            localStorage.setItem('adminToken', data.token);
-            localStorage.setItem('adminData', JSON.stringify(data.admin));
-
-            if (onLogin) {
-                onLogin(data.admin);
+            if (response.ok && data.token) {
+                localStorage.setItem('adminToken', data.token);
+                localStorage.setItem('adminData', JSON.stringify(data.admin));
+                if (onLogin) onLogin(data.admin);
+                alert('✅ Admin login successful!');
+            } else {
+                setError(data.error || 'Invalid credentials');
             }
         } catch (err) {
-            setError(err.message || 'Invalid username or password');
+            console.error("Admin login error:", err);
+            setError('Server error. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -50,29 +51,32 @@ function AdminLogin({ onLogin }) {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #1a1a2e 0%, #0a0a0a 100%)',
                 padding: '20px'
             }
         } >
         <
         div style = {
             {
-                background: 'white',
+                background: 'rgba(0,0,0,0.9)',
                 borderRadius: '20px',
                 padding: '40px',
                 width: '100%',
                 maxWidth: '400px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+                border: '1px solid rgba(212,175,55,0.3)',
+                boxShadow: '0 0 30px rgba(212,175,55,0.2)'
             }
         } >
         <
         div style = {
             { textAlign: 'center', marginBottom: '30px' } } >
         <
-        h1 style = {
-            { fontSize: '28px', color: '#333', margin: 0 } } > 👑Admin Panel < /h1> <
+        div style = {
+            { fontSize: '48px', marginBottom: '10px' } } > 👑 < /div> <
+        h2 style = {
+            { color: '#d4af37', margin: 0 } } > Admin Login < /h2> <
         p style = {
-            { color: '#666', marginTop: '10px' } } > SRJ GLOBAL TECHNOLOGY < /p> <
+            { color: '#888', fontSize: '14px', marginTop: '5px' } } > SRJ GLOBAL TECHNOLOGY < /p> <
         /div>
 
         <
@@ -81,64 +85,67 @@ function AdminLogin({ onLogin }) {
         div style = {
             { marginBottom: '20px' } } >
         <
-        label style = {
-            { display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' } } > Username < /label> <
         input type = "text"
-        placeholder = "Enter admin username"
+        placeholder = "Admin Username"
         value = { username }
         onChange = {
             (e) => setUsername(e.target.value) }
-        disabled = { loading }
         style = {
             {
                 width: '100%',
                 padding: '12px',
-                border: '2px solid #e0e0e0',
+                border: '2px solid #333',
                 borderRadius: '10px',
                 fontSize: '16px',
+                background: '#1a1a1a',
+                color: 'white',
                 boxSizing: 'border-box'
             }
         }
-        /> <
+        required /
+        >
+        <
         /div>
 
         <
         div style = {
             { marginBottom: '20px' } } >
         <
-        label style = {
-            { display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' } } > Password < /label> <
         input type = "password"
-        placeholder = "Enter admin password"
+        placeholder = "Admin Password"
         value = { password }
         onChange = {
             (e) => setPassword(e.target.value) }
-        disabled = { loading }
         style = {
             {
                 width: '100%',
                 padding: '12px',
-                border: '2px solid #e0e0e0',
+                border: '2px solid #333',
                 borderRadius: '10px',
                 fontSize: '16px',
+                background: '#1a1a1a',
+                color: 'white',
                 boxSizing: 'border-box'
             }
         }
-        /> <
+        required /
+        >
+        <
         /div>
 
         {
             error && ( <
                 div style = {
                     {
-                        background: '#fee',
-                        color: '#c33',
+                        background: 'rgba(231,76,60,0.2)',
+                        color: '#e74c3c',
                         padding: '10px',
                         borderRadius: '8px',
-                        marginBottom: '20px',
-                        textAlign: 'center'
+                        fontSize: '14px',
+                        textAlign: 'center',
+                        marginBottom: '20px'
                     }
-                } > ⚠️{ error } <
+                } > ❌{ error } <
                 /div>
             )
         }
@@ -149,31 +156,25 @@ function AdminLogin({ onLogin }) {
         style = {
             {
                 width: '100%',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
+                padding: '12px',
+                background: 'linear-gradient(135deg, #d4af37, #8b6914)',
+                color: '#1a1a2e',
                 border: 'none',
                 borderRadius: '10px',
                 fontSize: '16px',
-                fontWeight: '600',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'transform 0.2s'
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                opacity: loading ? 0.6 : 1
             }
         } >
-        { loading ? '⏳ Logging in...' : '🚀 Login to Admin Panel' } <
+        { loading ? 'Logging in...' : 'Login as Admin' } <
         /button> <
         /form>
 
         <
         div style = {
-            { marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #e0e0e0', textAlign: 'center' } } >
-        <
-        p style = {
-            { fontSize: '12px', color: '#666', margin: 0 } } > Default Credentials: < /p> <
-        small style = {
-            { display: 'block', fontSize: '11px', color: '#999', marginTop: '5px' } } > Username: superadmin < /small> <
-        small style = {
-            { display: 'block', fontSize: '11px', color: '#999' } } > Password: Admin @123 < /small> <
+            { textAlign: 'center', marginTop: '20px', fontSize: '12px', color: '#666' } } >
+        Default: superadmin / Admin @123 <
         /div> <
         /div> <
         /div>
