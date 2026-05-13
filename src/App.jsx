@@ -20,6 +20,9 @@ const getColor = (num) => {
     return redNumbers.includes(num) ? "#c62828" : "#1a1a1a";
 };
 
+// API Base URL - Replace with your live server
+const API_BASE_URL = "https://roulette-frontend-1.onrender.com";
+
 // Navigation Bar Component
 function NavigationBar({ user, onLogout, onAdminClick }) {
     const location = useLocation();
@@ -87,24 +90,24 @@ function RouletteGame() {
     const POINTER_ANGLE = -90;
 
     useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    if (token && savedUser) {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-        setBalance(userData.balance);
-        fetchHistory();
-        fetchBalance();
-    } else {
-        navigate('/auth');
-    }
-}, [navigate]); // <-- navigate add karo
+        const token = localStorage.getItem("token");
+        const savedUser = localStorage.getItem("user");
+        if (token && savedUser) {
+            const userData = JSON.parse(savedUser);
+            setUser(userData);
+            setBalance(userData.balance);
+            fetchHistory();
+            fetchBalance();
+        } else {
+            navigate('/auth');
+        }
+    }, [navigate]);
 
     const fetchHistory = async () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await fetch("http://localhost:5000/api/history", {
+            const res = await fetch(`${API_BASE_URL}/api/history`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -118,7 +121,7 @@ function RouletteGame() {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await fetch("http://localhost:5000/api/balance", {
+            const res = await fetch(`${API_BASE_URL}/api/balance`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -133,7 +136,7 @@ function RouletteGame() {
         if (!confirmDelete) return;
         try {
             const token = localStorage.getItem("token");
-            await fetch("http://localhost:5000/api/history", {
+            await fetch(`${API_BASE_URL}/api/history`, {
                 method: "DELETE",
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -149,7 +152,7 @@ function RouletteGame() {
         if (amount && !isNaN(amount) && Number(amount) > 0) {
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch("http://localhost:5000/api/add-balance", {
+                const res = await fetch(`${API_BASE_URL}/api/add-balance`, {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json',
@@ -205,7 +208,7 @@ function RouletteGame() {
             setBallYRotation(Math.sin(ballYAngle * Math.PI / 180) * 20);
         }, 60);
 
-        fetch("http://localhost:5000/api/spin", {
+        fetch(`${API_BASE_URL}/api/spin`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
