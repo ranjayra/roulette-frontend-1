@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Auth from "./Auth";
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
@@ -20,8 +20,8 @@ const getColor = (num) => {
     return redNumbers.includes(num) ? "#c62828" : "#1a1a1a";
 };
 
-// API Base URL - Replace with your live server
-const API_BASE_URL = "https://roulette-frontend-1.onrender.com";
+// ✅ CORRECT BACKEND LIVE URL
+const API_BASE_URL = "https://roulette-app-zov4.onrender.com";
 
 // Navigation Bar Component
 function NavigationBar({ user, onLogout, onAdminClick }) {
@@ -89,6 +89,40 @@ function RouletteGame() {
     const angle = 360 / numbers.length;
     const POINTER_ANGLE = -90;
 
+    const fetchHistory = useCallback(async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+            const res = await fetch(`${API_BASE_URL}/api/history`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            setHistory(Array.isArray(data) ? data : []);
+        } catch {
+            setHistory([]);
+        }
+    }, []);
+
+    const fetchBalance = useCallback(async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+            const res = await fetch(`${API_BASE_URL}/api/balance`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.balance !== undefined) {
+                setBalance(data.balance);
+                // Update user object in localStorage
+                const updatedUser = { ...user, balance: data.balance };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                setUser(updatedUser);
+            }
+        } catch (error) {
+            console.log("Balance fetch error:", error);
+        }
+    }, [user]);
+
     useEffect(() => {
         const token = localStorage.getItem("token");
         const savedUser = localStorage.getItem("user");
@@ -101,35 +135,7 @@ function RouletteGame() {
         } else {
             navigate('/auth');
         }
-    }, [navigate]);
-
-    const fetchHistory = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
-            const res = await fetch(`${API_BASE_URL}/api/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            setHistory(Array.isArray(data) ? data : []);
-        } catch {
-            setHistory([]);
-        }
-    };
-
-    const fetchBalance = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
-            const res = await fetch(`${API_BASE_URL}/api/balance`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            setBalance(data.balance);
-        } catch (error) {
-            console.log("Balance fetch error:", error);
-        }
-    };
+    }, [navigate, fetchHistory, fetchBalance]); // ✅ Added missing dependencies
 
     const clearHistory = async () => {
         const confirmDelete = window.confirm("Delete all history?");
@@ -152,6 +158,9 @@ function RouletteGame() {
         if (amount && !isNaN(amount) && Number(amount) > 0) {
             try {
                 const token = localStorage.getItem("token");
+                console.log("Adding money with token:", token);
+                console.log("API URL:", `${API_BASE_URL}/api/add-balance`);
+                
                 const res = await fetch(`${API_BASE_URL}/api/add-balance`, {
                     method: "POST",
                     headers: {
@@ -160,13 +169,26 @@ function RouletteGame() {
                     },
                     body: JSON.stringify({ amount: Number(amount) })
                 });
+                
+                console.log("Response status:", res.status);
                 const data = await res.json();
-                if (data.balance) {
+                console.log("Response data:", data);
+                
+                if (data.balance !== undefined) {
                     setBalance(data.balance);
+                    // Update user object in localStorage
+                    const updatedUser = { ...user, balance: data.balance };
+                    localStorage.setItem("user", JSON.stringify(updatedUser));
+                    setUser(updatedUser);
                     alert(`✅ ₹${amount} added! New balance: ₹${data.balance}`);
+                } else if (data.error) {
+                    alert(`❌ Error: ${data.error}`);
+                } else {
+                    alert("Failed to add money. Please try again.");
                 }
             } catch (error) {
-                alert("Failed to add money.");
+                console.error("Add money error:", error);
+                alert("Failed to add money. Check console for details.");
             }
         }
     };
@@ -239,6 +261,11 @@ function RouletteGame() {
                     clearInterval(ballYInterval);
                     setWinningNumber(winningNum);
                     setBalance(data.balance);
+                    // Update user object in localStorage
+                    const updatedUser = { ...user, balance: data.balance };
+                    localStorage.setItem("user", JSON.stringify(updatedUser));
+                    setUser(updatedUser);
+                    
                     if (data.result === "win") {
                         setMessage(`🎉 You WIN! +${data.winAmount}`);
                     } else {
@@ -252,6 +279,7 @@ function RouletteGame() {
                 }, 4000);
             })
             .catch((error) => {
+                console.error("Spin error:", error);
                 alert("Server error: " + error.message);
                 clearInterval(ballXInterval);
                 clearInterval(ballYInterval);
