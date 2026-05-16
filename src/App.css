@@ -1,4 +1,4 @@
-/* src/App.css - Complete Casino Theme */
+/* src/App.css - Monaco Grande Casino - Complete Premium Theme */
 
 
 /* ========== RESET & BASE ========== */
@@ -17,15 +17,15 @@ body {
 }
 
 
-/* ========== SCROLLBAR ========== */
+/* ========== CUSTOM SCROLLBAR ========== */
 
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(8, 10, 14, 0.8);
+    background: rgba(8, 10, 14, 0.9);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -41,17 +41,14 @@ body {
 /* ========== ANIMATIONS ========== */
 
 @keyframes pulseDot {
-    0% {
+    0%,
+    100% {
         opacity: 1;
         box-shadow: 0 0 0 0 rgba(76, 175, 101, 0.4);
     }
     50% {
         opacity: 0.7;
         box-shadow: 0 0 0 5px transparent;
-    }
-    100% {
-        opacity: 1;
-        box-shadow: 0 0 0 0 transparent;
     }
 }
 
@@ -96,34 +93,39 @@ body {
     }
 }
 
-@keyframes floatGlow {
-    0%,
-    100% {
-        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
-    }
-    50% {
-        filter: drop-shadow(0 15px 30px rgba(201, 168, 76, 0.3));
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 
-@keyframes chipDrop {
-    0% {
-        transform: translateY(-20px) scale(0.8);
+@keyframes fadeOut {
+    to {
         opacity: 0;
-    }
-    100% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
+        visibility: hidden;
     }
 }
 
-@keyframes borderPulse {
+@keyframes winnerPulse {
     0%,
     100% {
-        border-color: rgba(201, 168, 76, 0.3);
+        box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.7);
     }
     50% {
-        border-color: rgba(201, 168, 76, 0.8);
+        box-shadow: 0 0 0 10px rgba(201, 168, 76, 0);
+    }
+}
+
+@keyframes numberPop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+        color: #e8c97a;
+    }
+    100% {
+        transform: scale(1);
     }
 }
 
@@ -147,18 +149,18 @@ body {
 }
 
 
-/* ========== RESPONSIVE GRID ========== */
+/* ========== RESPONSIVE GRID (Matches React S.mainGrid) ========== */
 
-@media (max-width: 1100px) {
+@media (max-width: 1000px) {
     .main-casino-grid {
-        grid-template-columns: 1fr 420px !important;
+        grid-template-columns: 1fr 380px !important;
     }
     .history-col {
         display: none !important;
     }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 700px) {
     .main-casino-grid {
         grid-template-columns: 1fr !important;
     }
@@ -168,12 +170,23 @@ body {
 }
 
 
-/* ========== CUSTOM NUMBER INPUT ========== */
+/* ========== NUMBER INPUT STYLES ========== */
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     opacity: 0.5;
     background: #c9a84c;
+    cursor: pointer;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: rgba(201, 168, 76, 0.5);
+    box-shadow: 0 0 8px rgba(201, 168, 76, 0.2);
 }
 
 
@@ -181,6 +194,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 button {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
 }
 
 button:active {
@@ -188,53 +202,42 @@ button:active {
 }
 
 
-/* ========== GLASS MORPHISM OVERLAY ========== */
+/* ========== WHEEL STYLES ========== */
 
-.glass-overlay {
-    background: rgba(8, 10, 14, 0.75);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(201, 168, 76, 0.18);
-}
-
-
-/* ========== WHEEL SPECIFIC STYLES ========== */
-
-.wheel-container svg {
+.wheel-container svg,
+[class*="wheelWrap"] svg,
+[class*="wheel-wrap"] svg {
     transition: filter 0.3s ease;
 }
 
-.wheel-container svg:hover {
+.wheel-container svg:hover,
+[class*="wheelWrap"] svg:hover,
+[class*="wheel-wrap"] svg:hover {
     filter: drop-shadow(0 0 15px rgba(201, 168, 76, 0.4));
 }
 
 
 /* ========== NUMBER CELL HOVER ========== */
 
-.number-cell {
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.number-cell:hover {
+[class*="numCell"]:hover,
+[class*="num-grid"] div:hover {
     transform: scale(1.05);
     filter: brightness(1.15);
     z-index: 10;
 }
 
 
-/* ========== CHIP ANIMATION ON SELECT ========== */
+/* ========== CHIP ANIMATIONS ========== */
 
-.chip-item {
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.chip-item:active {
-    transform: scale(0.92);
+[class*="chip"]:active {
+    transform: scale(0.95);
 }
 
 
 /* ========== HISTORY ITEM HOVER ========== */
 
-.history-item:hover {
+[class*="histItem"]:hover,
+[class*="history-item"]:hover {
     transform: translateX(4px);
     background: linear-gradient(90deg, rgba(201, 168, 76, 0.08), rgba(0, 0, 0, 0.4));
 }
@@ -242,11 +245,8 @@ button:active {
 
 /* ========== STAT CARD HOVER ========== */
 
-.stat-card {
-    transition: all 0.2s ease;
-}
-
-.stat-card:hover {
+[class*="statCard"]:hover,
+[class*="stat-card"]:hover {
     transform: translateY(-2px);
     background: rgba(201, 168, 76, 0.08);
     border-color: rgba(201, 168, 76, 0.2);
@@ -262,12 +262,6 @@ button:active {
     border-top-color: #c9a84c;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 
@@ -288,7 +282,7 @@ button:active {
 .divider-gold {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.3), transparent);
-    margin: 16px 0;
+    margin: 12px 0;
 }
 
 
@@ -306,17 +300,18 @@ button:active {
     left: 50%;
     transform: translateX(-50%);
     padding: 4px 8px;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     color: #c9a84c;
-    font-size: 10px;
+    font-size: 9px;
     font-family: 'Montserrat', sans-serif;
     letter-spacing: 0.05em;
     white-space: nowrap;
-    border-radius: 2px;
+    border-radius: 3px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
     z-index: 100;
+    border: 1px solid rgba(201, 168, 76, 0.3);
 }
 
 [data-tooltip]:hover:before {
@@ -329,6 +324,7 @@ button:active {
 *:focus-visible {
     outline: 2px solid #c9a84c;
     outline-offset: 2px;
+    border-radius: 2px;
 }
 
 
@@ -346,70 +342,11 @@ button:active {
     body {
         font-size: 13px;
     }
-}
-
-
-/* ========== PRINT STYLES ========== */
-
-@media print {
-    .navbar,
-    button,
-    .history-col {
-        display: none;
+    [class*="casinoName"] {
+        font-size: 14px !important;
     }
-    body {
-        background: white;
-        color: black;
-    }
-}
-
-
-/* ========== DARK MODE FALLBACK ========== */
-
-@media (prefers-color-scheme: light) {
-    body {
-        background: #1a1a2e;
-    }
-}
-
-
-/* ========== CUSTOM CURSOR (Optional) ========== */
-
-.casino-cursor {
-    cursor: crosshair;
-}
-
-button:active {
-    cursor: pointer;
-}
-
-
-/* ========== SMOOTH SCROLLING ========== */
-
-html {
-    scroll-behavior: smooth;
-}
-
-
-/* ========== LOADING SCREEN ANIMATION ========== */
-
-.loading-screen {
-    position: fixed;
-    inset: 0;
-    background: #07090f;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    animation: fadeOut 0.5s ease forwards;
-    animation-delay: 2s;
-}
-
-@keyframes fadeOut {
-    to {
-        opacity: 0;
-        visibility: hidden;
+    [class*="panelTitle"] {
+        font-size: 7px !important;
     }
 }
 
@@ -418,16 +355,6 @@ html {
 
 .winner-glow {
     animation: winnerPulse 1s ease-in-out infinite;
-}
-
-@keyframes winnerPulse {
-    0%,
-    100% {
-        box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 10px rgba(201, 168, 76, 0);
-    }
 }
 
 
@@ -466,86 +393,6 @@ html {
     animation: numberPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-@keyframes numberPop {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.3);
-        color: #e8c97a;
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-
-/* ========== TABLE CELL BORDER EFFECT ========== */
-
-.table-cell-border {
-    position: relative;
-    overflow: hidden;
-}
-
-.table-cell-border::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
-    transition: left 0.3s ease;
-}
-
-.table-cell-border:hover::after {
-    left: 100%;
-}
-
-
-/* ========== RESPONSIVE ADJUSTMENTS ========== */
-
-@media (max-width: 480px) {
-    .number-grid {
-        gap: 3px;
-    }
-    .number-cell {
-        font-size: 9px;
-    }
-    .chip-item {
-        width: 32px;
-        height: 32px;
-        font-size: 7px;
-    }
-    .balance-amount {
-        font-size: 14px;
-    }
-}
-
-
-/* ========== ACCESSIBILITY ========== */
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-}
-
-
-/* ========== GLASS PANEL EFFECT ========== */
-
-.glass-panel {
-    background: rgba(8, 10, 14, 0.75);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(201, 168, 76, 0.18);
-    border-radius: 2px;
-}
-
 
 /* ========== SHIMMER BORDER ========== */
 
@@ -560,9 +407,12 @@ html {
     inset: 0;
     padding: 1px;
     background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
     mask-composite: exclude;
     animation: shimmerMove 3s infinite;
+    pointer-events: none;
 }
 
 @keyframes shimmerMove {
@@ -575,24 +425,262 @@ html {
 }
 
 
-/* ========== FOOTER (if needed) ========== */
+/* ========== GLASS PANEL EFFECT ========== */
 
-.casino-footer {
-    margin-top: 48px;
-    padding: 24px;
-    text-align: center;
-    border-top: 1px solid rgba(201, 168, 76, 0.1);
-    font-size: 10px;
-    color: #3a3020;
-    letter-spacing: 0.1em;
+.glass-panel {
+    background: rgba(8, 10, 14, 0.75);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(201, 168, 76, 0.18);
+    border-radius: 2px;
 }
 
-.casino-footer a {
-    color: #5a4a28;
-    text-decoration: none;
-    transition: color 0.2s;
+
+/* ========== PREMIUM ADDITIONS ========== */
+
+
+/* Ambient glow for wheel */
+
+.wheel-glow {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: ambientPulse 4s ease-in-out infinite;
 }
 
-.casino-footer a:hover {
-    color: #c9a84c;
+@keyframes ambientPulse {
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+}
+
+
+/* Number selector active state */
+
+.number-selected {
+    position: relative;
+}
+
+.number-selected::after {
+    content: '●';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    font-size: 6px;
+    color: #e8c97a;
+}
+
+
+/* Spin button shine effect */
+
+.spin-btn-shine {
+    position: relative;
+    overflow: hidden;
+}
+
+.spin-btn-shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(25deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% {
+        transform: translateX(-100%) rotate(25deg);
+    }
+    20%,
+    100% {
+        transform: translateX(100%) rotate(25deg);
+    }
+}
+
+
+/* Balance amount pulse on update */
+
+.balance-update {
+    animation: balancePulse 0.4s ease;
+}
+
+@keyframes balancePulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+        text-shadow: 0 0 10px #c9a84c;
+    }
+}
+
+
+/* Responsive container padding */
+
+@media (max-width: 768px) {
+    [class*="inner"] {
+        padding: 0 12px 20px !important;
+    }
+}
+
+
+/* Print styles */
+
+@media print {
+    .navbar,
+    button,
+    .history-col,
+    [class*="ambientBg"],
+    [class*="ambientSpot"] {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    [class*="panel"],
+    [class*="panelDark"] {
+        border: 1px solid #ccc !important;
+        background: white !important;
+        color: black !important;
+    }
+}
+
+
+/* Reduced motion support */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+/* Dark mode support */
+
+@media (prefers-color-scheme: light) {
+    body {
+        background: #1a1a2e;
+    }
+}
+
+
+/* Firefox specific */
+
+@-moz-document url-prefix() {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #c9a84c #0a0a12;
+    }
+}
+
+
+/* Smooth transitions for all interactive elements */
+
+a,
+button,
+[role="button"],
+.clickable {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* Loading screen overlay */
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: #07090f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+
+/* Card hover lift effect */
+
+.card-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+
+/* Gold border animation */
+
+.gold-border-anim {
+    border: 1px solid transparent;
+    background: linear-gradient(#07090f, #07090f) padding-box, linear-gradient(90deg, #c9a84c, #ffd700, #c9a84c) border-box;
+    animation: borderRotate 3s linear infinite;
+    background-size: 200% 200%;
+}
+
+@keyframes borderRotate {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 200% 0%;
+    }
+}
+
+
+/* Success/Error text styles */
+
+.text-success {
+    color: #6ddf9d;
+}
+
+.text-error {
+    color: #e07090;
+}
+
+.text-gold {
+    color: #e8c97a;
+}
+
+
+/* Utility classes for spacing */
+
+.mt-1 {
+    margin-top: 4px;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+.mt-3 {
+    margin-top: 12px;
+}
+
+.mb-1 {
+    margin-bottom: 4px;
+}
+
+.mb-2 {
+    margin-bottom: 8px;
+}
+
+.mb-3 {
+    margin-bottom: 12px;
 }
